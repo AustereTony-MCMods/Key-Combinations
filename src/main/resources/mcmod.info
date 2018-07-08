@@ -1,0 +1,16 @@
+[
+{
+  "modid": "keycombs",
+  "name": "Key Combinations",
+  "description": "Key combinations with SHIFT, ALT and CONTROL.",
+  "version": "1.0.0",
+  "mcversion": "1.7.10",
+  "url": "https://www.curseforge.com/minecraft/mc-mods/key-combinatins",
+  "updateUrl": "",
+  "authorList": ["AustereTony"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
