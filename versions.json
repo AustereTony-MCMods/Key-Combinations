@@ -1,11 +1,12 @@
 {
 "1.7.10": {
 
-	"available": "1.0.0",
+	"available": "1.1.0",
 		
 	"changelog": [
 			
-		"Initial release."
+		"Fixed minor errors and code clean up.",
+		"Fixed server crash if installed on server."
 	]
 }
 }
