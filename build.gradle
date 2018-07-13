@@ -17,7 +17,7 @@ buildscript {
 
 apply plugin: 'forge'
 
-version = "1.7.10-1.0.0"
+version = "1.7.10-1.1.0"
 group= "ru.austeretony.keycombs" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "keycombinations"
 
@@ -69,7 +69,7 @@ processResources
 
 jar {
    manifest {
-       attributes 'FMLCorePlugin': 'ru.austeretony.keycombs.coremod.KeyCombsCorePlugin'
+       attributes 'FMLCorePlugin': 'ru.austeretony.keycombs.coremod.KeyCombinationsCorePlugin'
        attributes 'FMLCorePluginContainsFMLMod': 'true'
 	   attributes 'FMLAT': 'keycombs_at.cfg'
    }

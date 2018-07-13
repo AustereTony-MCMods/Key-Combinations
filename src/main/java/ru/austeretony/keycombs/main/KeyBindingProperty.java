@@ -12,76 +12,101 @@ import com.google.common.collect.Multimap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.GameSettings;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.util.IntHashMap;
 
 public class KeyBindingProperty {
+		
+	private static final Map<KeyBinding, KeyBindingProperty> PROPERTIES_BY_KEYBINDINGS = new HashMap<KeyBinding, KeyBindingProperty>();
+	        
+    private static final Multimap<EnumKeyModifier, KeyBindingProperty> KEY_MODIFIERS = HashMultimap.<EnumKeyModifier, KeyBindingProperty>create();
+	    
+	private final KeyBinding keyBinding;
+	
+	private final EnumKeyModifier defaultKeyModifier;
+	
+	private EnumKeyModifier keyModifier;
+	
+	private EnumKeyConflictContext keyConflictContext;
+			
+	private KeyBindingProperty(KeyBinding keyBinding) {
+		
+		this.keyBinding = keyBinding;
+					
+		this.defaultKeyModifier = this.keyModifier = EnumKeyModifier.NONE;       		
+		this.keyConflictContext = EnumKeyConflictContext.UNIVERSAL;
+		
+		PROPERTIES_BY_KEYBINDINGS.put(this.keyBinding, this);
+		KEY_MODIFIERS.put(this.keyModifier, this);
+	}
+	
+	public static void create(KeyBinding keyBinding) {
+		
+		new KeyBindingProperty(keyBinding);
+	}
+
+	public static KeyBindingProperty get(KeyBinding keyBinding) {
+		
+		return PROPERTIES_BY_KEYBINDINGS.get(keyBinding);
+	}
+	
+	public EnumKeyModifier getDefaultKeyModifier() {
+		
+		return this.defaultKeyModifier;
+	}
+	
+	public EnumKeyModifier getKeyModifier() {
+		
+		return this.keyModifier;
+	}
+	
+	public void setKeyModifier(EnumKeyModifier keyModifier) {
+		
+		this.keyModifier = keyModifier;
+	}
+	
+	public EnumKeyConflictContext getKeyConflictContext() {
+		
+		return this.keyConflictContext;
+	}
+	
+	public void setKeyConflictContext(EnumKeyConflictContext keyConflictContext) {
+		
+		this.keyConflictContext = keyConflictContext;
+	}
+	
+	public KeyBinding getKeyBinding() {
+		
+		return this.keyBinding;
+	}
+		
+    public void setKeyModifierAndCode(EnumKeyModifier keyModifier, int keyCode) {
+    	    	
+        this.getKeyBinding().setKeyCode(keyCode);
         
-    public static IntHashMap keyBindingsHash;
-    
-    public static final Map<KeyBinding, EnumKeyModifier> KEY_MODIFIERS = new HashMap<KeyBinding, EnumKeyModifier>();
-    
-    public static final Map<KeyBinding, EnumKeyModifier> DEFAULT_KEY_MODIFIERS = new HashMap<KeyBinding, EnumKeyModifier>();
-	 
-    public static final Map<KeyBinding, EnumKeyConflictContext> CONFLICT_CONTEXT = new HashMap<KeyBinding, EnumKeyConflictContext>();
-    
-    public static final Multimap<EnumKeyModifier, KeyBinding> MODIFIERS = HashMultimap.<EnumKeyModifier, KeyBinding>create();
-	
-	public static EnumKeyModifier getKeyModifier(KeyBinding key) {
-		
-		return KEY_MODIFIERS.get(key);
-	}
-	
-	public static void setKeyModifier(KeyBinding key, EnumKeyModifier keyModifier) {
-		
-		KEY_MODIFIERS.put(key, keyModifier);
-	}
-	
-	public static EnumKeyModifier getDefaultKeyModifier(KeyBinding key) {
-		
-		return DEFAULT_KEY_MODIFIERS.get(key);
-	}
-	
-	public static EnumKeyConflictContext getKeyConflictContext(KeyBinding key) {
-		
-		return CONFLICT_CONTEXT.get(key);
-	}
-	
-	public static void setKeyConflictContext(KeyBinding key, EnumKeyConflictContext keyConflictContext) {
-		
-		CONFLICT_CONTEXT.put(key, keyConflictContext);
-	}
-	
-    public static void setKeyModifierAndCode(KeyBinding key, EnumKeyModifier keyModifier, int keyCode) {
-    	
-        key.setKeyCode(keyCode);
-        
-        if (keyModifier.match(keyCode)) {
-        	
+        if (keyModifier.match(keyCode))       	
             keyModifier = EnumKeyModifier.NONE;
-        }
         
-        MODIFIERS.remove(getKeyModifier(key), key);
-        keyBindingsHash.removeObject(keyCode);
-        setKeyModifier(key, keyModifier);
-        MODIFIERS.put(keyModifier, key);
-        keyBindingsHash.addKey(keyCode, key);
+        KEY_MODIFIERS.remove(this.getKeyModifier(), this);
+        KeyBinding.hash.removeObject(keyCode);
+        this.setKeyModifier(keyModifier);
+        KEY_MODIFIERS.put(keyModifier, this);
+        KeyBinding.hash.addKey(keyCode, this.getKeyBinding());
     }
     
-    public static void setToDefault(KeyBinding key) {
-    	
-        setKeyModifierAndCode(key, getDefaultKeyModifier(key), key.getKeyCodeDefault());
+    public void setToDefault() {
+    	    	
+        setKeyModifierAndCode(this.getDefaultKeyModifier(), this.getKeyBinding().getKeyCodeDefault());
     }
 
-    public static boolean isSetToDefaultValue(KeyBinding key) {
-    	
-        return key.getKeyCode() == key.getKeyCodeDefault() && getKeyModifier(key) == getDefaultKeyModifier(key);
+    public boolean isSetToDefaultValue() {
+    	    	
+        return this.getKeyBinding().getKeyCode() == this.getKeyBinding().getKeyCodeDefault() && this.getKeyModifier() == this.getDefaultKeyModifier();
     }
     
-	public static boolean isKeyDown(KeyBinding key) {
+	public boolean isKeyDown() {
+				
+		EnumKeyConflictContext conflictContext = this.getKeyConflictContext();
 		
-		EnumKeyConflictContext conflictContext = getKeyConflictContext(key);
-		
-        return key.pressed && conflictContext.isActive() && getKeyModifier(key).isActive(conflictContext);
+        return this.getKeyBinding().pressed && conflictContext.isActive() && this.getKeyModifier().isActive(conflictContext);
 	}
 	
 	public static KeyBinding lookupActive(int keyCode) {
@@ -92,10 +117,8 @@ public class KeyBindingProperty {
         	
             KeyBinding key = getBinding(keyCode, activeModifier);
             
-            if (key != null) {
-            	
+            if (key != null)          	
                 return key;
-            }
         }
         
         return getBinding(keyCode, EnumKeyModifier.NONE);
@@ -103,16 +126,14 @@ public class KeyBindingProperty {
 	
     private static KeyBinding getBinding(int keyCode, EnumKeyModifier keyModifier) {
     	
-        Collection<KeyBinding> keys = MODIFIERS.get(keyModifier);
+        Collection<KeyBindingProperty> propertties = KEY_MODIFIERS.get(keyModifier);
         
-        if (keys != null) {
+        if (propertties != null) {
         	
-            for (KeyBinding key : keys) {
+            for (KeyBindingProperty property : propertties) {
             	
-                if (isActiveAndMatch(key, keyCode)) {
-                	
-                    return key;
-                }
+                if (property.isActiveAndMatch(keyCode))               	
+                    return property.getKeyBinding();
             }
         }
         
@@ -123,62 +144,53 @@ public class KeyBindingProperty {
     	
         List<KeyBinding> matchingBindings = new ArrayList<KeyBinding>();
         
-        for (KeyBinding key : MODIFIERS.values()) {
+        for (KeyBindingProperty property : KEY_MODIFIERS.values()) {
         	            
-            if (key.getKeyCode() == keyCode) {
-            	
-                matchingBindings.add(key);
-            }
+            if (property.getKeyBinding().getKeyCode() == keyCode)           	
+                matchingBindings.add(property.getKeyBinding());
         }
         
         return matchingBindings;
     }
     
-    public static boolean isActiveAndMatch(KeyBinding key, int keyCode) {
+    public boolean isActiveAndMatch(int keyCode) {
+    	    	
+    	EnumKeyConflictContext conflictContext = this.getKeyConflictContext();
     	
-    	EnumKeyConflictContext conflictContext = getKeyConflictContext(key);
-    	
-        return keyCode != 0 && keyCode == key.getKeyCode() && conflictContext.isActive() && getKeyModifier(key).isActive(conflictContext);
+        return keyCode != 0 && keyCode == this.getKeyBinding().getKeyCode() && conflictContext.isActive() && this.getKeyModifier().isActive(conflictContext);
     }
 	
-    public static boolean conflicts(KeyBinding currentKey, KeyBinding other) {
+    public boolean conflicts(KeyBindingProperty other) {
     	
-        if (getKeyConflictContext(currentKey).conflicts(getKeyConflictContext(other)) || getKeyConflictContext(other).conflicts(getKeyConflictContext(currentKey))) {
+        if (this.getKeyConflictContext().conflicts(other.getKeyConflictContext()) || other.getKeyConflictContext().conflicts(this.getKeyConflictContext())) {
         	
             EnumKeyModifier 
-            keyModifier = getKeyModifier(currentKey),
-            otherKeyModifier = getKeyModifier(other);
+            keyModifier = this.getKeyModifier(),
+            otherKeyModifier = other.getKeyModifier();
             
-            if (keyModifier.match(other.getKeyCode()) || otherKeyModifier.match(currentKey.getKeyCode())) {
-            	
+            if (keyModifier.match(other.getKeyBinding().getKeyCode()) || otherKeyModifier.match(this.getKeyBinding().getKeyCode()))        	
                 return true;
-            }
-            
-            else if (currentKey.getKeyCode() == other.getKeyCode()) {
-            	
-                return keyModifier == otherKeyModifier || (getKeyConflictContext(currentKey).conflicts(EnumKeyConflictContext.IN_GAME) && (keyModifier == EnumKeyModifier.NONE || otherKeyModifier == EnumKeyModifier.NONE));
-            }
+            else if (this.getKeyBinding().getKeyCode() == other.getKeyBinding().getKeyCode())            	
+                return keyModifier == otherKeyModifier || (this.getKeyConflictContext().conflicts(EnumKeyConflictContext.IN_GAME) && (keyModifier == EnumKeyModifier.NONE || otherKeyModifier == EnumKeyModifier.NONE));
         }
         
         return false;
     }
     
-    public static boolean hasKeyCodeModifierConflict(KeyBinding currentKey, KeyBinding other) {
+    public boolean hasKeyCodeModifierConflict(KeyBindingProperty other) {
     	
-        if (getKeyConflictContext(currentKey).conflicts(getKeyConflictContext(other)) || getKeyConflictContext(other).conflicts(getKeyConflictContext(currentKey))) {
+        if (this.getKeyConflictContext().conflicts(other.getKeyConflictContext()) || other.getKeyConflictContext().conflicts(this.getKeyConflictContext())) {
         	
-            if (getKeyModifier(currentKey).match(other.getKeyCode()) || getKeyModifier(other).match(currentKey.getKeyCode())) {
-            	
+            if (this.getKeyModifier().match(other.getKeyBinding().getKeyCode()) || other.getKeyModifier().match(this.getKeyBinding().getKeyCode()))         	
                 return true;
-            }
         }
         
         return false;
     }
     
-    public static String getDisplayName(KeyBinding key) {
+    public String getDisplayName() {
     	
-        return getKeyModifier(key).getLocalizedName(key.getKeyCode());
+        return this.getKeyModifier().getLocalizedName(this.getKeyBinding().getKeyCode());
     }
     
     public static void setKeysConflictContext() {
@@ -187,24 +199,22 @@ public class KeyBindingProperty {
     	
     	EnumKeyConflictContext inGame = EnumKeyConflictContext.IN_GAME;
         
-        setKeyConflictContext(gameSetings.keyBindForward, inGame);
-        setKeyConflictContext(gameSetings.keyBindLeft, inGame);
-        setKeyConflictContext(gameSetings.keyBindBack, inGame);
-        setKeyConflictContext(gameSetings.keyBindRight, inGame);
-        setKeyConflictContext(gameSetings.keyBindJump, inGame);
-        setKeyConflictContext(gameSetings.keyBindSneak, inGame);
-        setKeyConflictContext(gameSetings.keyBindSprint, inGame);
-        setKeyConflictContext(gameSetings.keyBindAttack, inGame);
-        setKeyConflictContext(gameSetings.keyBindChat, inGame);
-        setKeyConflictContext(gameSetings.keyBindPlayerList, inGame);
-        setKeyConflictContext(gameSetings.keyBindCommand, inGame);
-        setKeyConflictContext(gameSetings.keyBindTogglePerspective, inGame);
-        setKeyConflictContext(gameSetings.keyBindSmoothCamera, inGame);
-        
-        setKeyConflictContext(KeyCombsMain.Registry.KEY_QUIT, inGame);
-        setKeyConflictContext(KeyCombsMain.Registry.KEY_HIDE_HUD, inGame);
-        setKeyConflictContext(KeyCombsMain.Registry.KEY_DEBUG_SCREEN, inGame);
-        setKeyConflictContext(KeyCombsMain.Registry.KEY_DISABLE_SHADER, inGame);
+    	PROPERTIES_BY_KEYBINDINGS.get(gameSetings.keyBindForward).setKeyConflictContext(inGame);
+    	PROPERTIES_BY_KEYBINDINGS.get(gameSetings.keyBindLeft).setKeyConflictContext(inGame);
+    	PROPERTIES_BY_KEYBINDINGS.get(gameSetings.keyBindBack).setKeyConflictContext(inGame);
+    	PROPERTIES_BY_KEYBINDINGS.get(gameSetings.keyBindRight).setKeyConflictContext(inGame);
+    	PROPERTIES_BY_KEYBINDINGS.get(gameSetings.keyBindJump).setKeyConflictContext(inGame);
+    	PROPERTIES_BY_KEYBINDINGS.get(gameSetings.keyBindSneak).setKeyConflictContext(inGame);
+    	PROPERTIES_BY_KEYBINDINGS.get(gameSetings.keyBindSprint).setKeyConflictContext(inGame);
+    	PROPERTIES_BY_KEYBINDINGS.get(gameSetings.keyBindAttack).setKeyConflictContext(inGame);
+    	PROPERTIES_BY_KEYBINDINGS.get(gameSetings.keyBindChat).setKeyConflictContext(inGame);
+    	PROPERTIES_BY_KEYBINDINGS.get(gameSetings.keyBindPlayerList).setKeyConflictContext(inGame);
+    	PROPERTIES_BY_KEYBINDINGS.get(gameSetings.keyBindCommand).setKeyConflictContext(inGame);
+    	PROPERTIES_BY_KEYBINDINGS.get(gameSetings.keyBindTogglePerspective).setKeyConflictContext(inGame);
+    	PROPERTIES_BY_KEYBINDINGS.get(gameSetings.keyBindSmoothCamera).setKeyConflictContext(inGame);
+    	
+    	PROPERTIES_BY_KEYBINDINGS.get(KeyCombinationsMain.Registry.KEY_HIDE_HUD).setKeyConflictContext(inGame);
+    	PROPERTIES_BY_KEYBINDINGS.get(KeyCombinationsMain.Registry.KEY_DEBUG_SCREEN).setKeyConflictContext(inGame);
+    	PROPERTIES_BY_KEYBINDINGS.get(KeyCombinationsMain.Registry.KEY_DISABLE_SHADER).setKeyConflictContext(inGame);
     }
 }
-

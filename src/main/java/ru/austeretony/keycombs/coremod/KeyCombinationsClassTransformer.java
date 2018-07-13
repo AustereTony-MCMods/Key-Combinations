@@ -20,9 +20,11 @@ import org.objectweb.asm.tree.VarInsnNode;
 
 import net.minecraft.launchwrapper.IClassTransformer;
 
-public class KeyCombsClassTransformer implements IClassTransformer {
+public class KeyCombinationsClassTransformer implements IClassTransformer {
 
 	public static final Logger LOGGER = LogManager.getLogger("Key Combinations Core");
+	
+	private static final String HOOKS_CLASS = "ru/austeretony/keycombs/coremod/KeyCombinationsHooks";
 	
     @Override
     public byte[] transform(String name, String transformedName, byte[] basicClass) {    	
@@ -41,8 +43,7 @@ public class KeyCombsClassTransformer implements IClassTransformer {
 
 			case "net.minecraft.client.settings.KeyBinding":		
 				return patchKeyBinding(basicClass, false);
-				
-			
+    	
 			case "bev":									
 				return patchKeyEntry(basicClass, true, false);
 
@@ -71,18 +72,18 @@ public class KeyCombsClassTransformer implements IClassTransformer {
 	    		
 			
 			case "bdw":					
-				return patchGuiScreen(basicClass, true, false);
+				return patchGuiScreen(basicClass, true);
 		
 			case "net.minecraft.client.gui.GuiScreen":							
-	    		return patchGuiScreen(basicClass, false, false);	
+	    		return patchGuiScreen(basicClass, false);	
 	    		
 			
 			case "bex":					
-				return patchGuiScreen(basicClass, true, true);
+				return patchGuiContainer(basicClass, true);
 		
 			case "net.minecraft.client.gui.inventory.GuiContainer":							
-	    		return patchGuiScreen(basicClass, false, true);
-    	}
+	    		return patchGuiContainer(basicClass, false);
+    	}	
     	
 		return basicClass;
     }
@@ -97,17 +98,16 @@ public class KeyCombsClassTransformer implements IClassTransformer {
 	 	loadOptionsMethodName = obfuscated ? "a" : "loadOptions",
 	 	saveOptionsMethodName = obfuscated ? "b" : "saveOptions",
 	    stringClassName = "java/lang/String",
-	    keyBindingClassName = obfuscated ? "bal" : "net/minecraft/client/settings/KeyBinding",
 	 	printWriterClassName = "java/io/PrintWriter";
 	 		 		    
         boolean isSuccessful = false;
+        
+        AbstractInsnNode currentInsn;
 	 		    
 	    for (MethodNode methodNode : classNode.methods) {
 	    	
 			if (methodNode.name.equals(loadOptionsMethodName) && methodNode.desc.equals("()V")) {
-												
-	            AbstractInsnNode currentInsn = null;
-	            
+													            
 	            Iterator<AbstractInsnNode> insnIterator = methodNode.instructions.iterator();
 	           
 	            while (insnIterator.hasNext()) {
@@ -119,7 +119,7 @@ public class KeyCombsClassTransformer implements IClassTransformer {
                     	InsnList nodesList = new InsnList();
                     	
                     	nodesList.add(new VarInsnNode(Opcodes.ALOAD, 3));
-                    	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "ru/austeretony/keycombs/coremod/KeyCombsHooks", "loadControlsFromOptionsFile", "([L" + stringClassName + ";)Z", false));                 	
+                    	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "loadControlsFromOptionsFile", "([L" + stringClassName + ";)Z", false));                 	
                         nodesList.add(new JumpInsnNode(Opcodes.IFEQ, ((JumpInsnNode) currentInsn).label));
                     	
                         methodNode.instructions.insertBefore(currentInsn.getPrevious().getPrevious(), nodesList);
@@ -130,9 +130,7 @@ public class KeyCombsClassTransformer implements IClassTransformer {
 			}
 			
 			if (methodNode.name.equals(saveOptionsMethodName) && methodNode.desc.equals("()V")) {
-				
-	            AbstractInsnNode currentInsn = null;
-	            
+					            
 	            Iterator<AbstractInsnNode> insnIterator = methodNode.instructions.iterator();
 	           
 	            while (insnIterator.hasNext()) {
@@ -144,7 +142,7 @@ public class KeyCombsClassTransformer implements IClassTransformer {
                     	InsnList nodesList = new InsnList();
                     	
                     	nodesList.add(new VarInsnNode(Opcodes.ALOAD, 1));
-                    	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "ru/austeretony/keycombs/coremod/KeyCombsHooks", "saveControlsToOptionsFile", "(L" + printWriterClassName + ";)Z", false));          
+                    	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "saveControlsToOptionsFile", "(L" + printWriterClassName + ";)Z", false));          
                         nodesList.add(new JumpInsnNode(Opcodes.IFEQ, ((JumpInsnNode) currentInsn).label));
                     	
                         methodNode.instructions.insertBefore(currentInsn.getPrevious().getPrevious(), nodesList);
@@ -163,7 +161,7 @@ public class KeyCombsClassTransformer implements IClassTransformer {
 	    classNode.accept(writer);
 	    
 	    if (isSuccessful)
-	    LOGGER.info("<GameSettings.class> patched!");   
+	    	LOGGER.info("<GameSettings.class> patched!");   
 	    	    
 	    return writer.toByteArray();	
 	}
@@ -175,24 +173,20 @@ public class KeyCombsClassTransformer implements IClassTransformer {
         classReader.accept(classNode, 0);
         
 	 	String 
-	 	hashFieldName = obfuscated ? "b" : "hash",
 	 	onTickMethodName = obfuscated ? "a" : "onTick",
 	 	isKeyPressedMethodName = obfuscated ? "d" : "getIsKeyPressed",
 	 	setKeyBindStateMethodName = obfuscated ? "a" : "setKeyBindState",
 	 	stringClassName = "java/lang/String",
-	 	keyBindingClassName = obfuscated ? "bal" : "net/minecraft/client/settings/KeyBinding",
-	 	intHashMapClassName = obfuscated ? "pz" : "net/minecraft/util/IntHashMap";
+	 	keyBindingClassName = obfuscated ? "bal" : "net/minecraft/client/settings/KeyBinding";
 
-        boolean 
-        descChanged = false,
-        isSuccessful = false;
+        boolean isSuccessful = false;
+        
+        AbstractInsnNode currentInsn;
                         
 		for (MethodNode methodNode : classNode.methods) {
 			
 			if (methodNode.name.equals(onTickMethodName) && methodNode.desc.equals("(I)V")) {
-				
-                AbstractInsnNode currentInsn = null;
-                
+				                
                 Iterator<AbstractInsnNode> insnIterator = methodNode.instructions.iterator();
                
                 while (insnIterator.hasNext()) {
@@ -204,7 +198,7 @@ public class KeyCombsClassTransformer implements IClassTransformer {
                     	InsnList nodesList = new InsnList();
 
                     	nodesList.add(new VarInsnNode(Opcodes.ILOAD, 0));
-                    	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "ru/austeretony/keycombs/coremod/KeyCombsHooks", "lookupActive", "(I)L" + keyBindingClassName + ";", false));
+                    	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "lookupActive", "(I)L" + keyBindingClassName + ";", false));
                     	nodesList.add(new VarInsnNode(Opcodes.ASTORE, 1));
                     	
                     	methodNode.instructions.insertBefore(currentInsn.getPrevious(), nodesList); 
@@ -215,9 +209,7 @@ public class KeyCombsClassTransformer implements IClassTransformer {
 			}
 			
 			if (methodNode.name.equals(setKeyBindStateMethodName) && methodNode.desc.equals("(IZ)V")) {
-				
-                AbstractInsnNode currentInsn = null;
-                
+				                
                 Iterator<AbstractInsnNode> insnIterator = methodNode.instructions.iterator();
                
                 while (insnIterator.hasNext()) {
@@ -230,7 +222,7 @@ public class KeyCombsClassTransformer implements IClassTransformer {
 
                     	nodesList.add(new VarInsnNode(Opcodes.ILOAD, 0));
                     	nodesList.add(new VarInsnNode(Opcodes.ILOAD, 1));
-                    	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "ru/austeretony/keycombs/coremod/KeyCombsHooks", "setKeybindingsState", "(IZ)V", false));
+                    	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "setKeybindingsState", "(IZ)V", false));
                     	nodesList.add(new InsnNode(Opcodes.RETURN));
                     	
                     	methodNode.instructions.insertBefore(currentInsn, nodesList); 
@@ -241,33 +233,19 @@ public class KeyCombsClassTransformer implements IClassTransformer {
 			}
 			
 			if (methodNode.name.equals("<init>") && methodNode.desc.equals("(L" + stringClassName + ";IL" + stringClassName + ";)V")) {
-												
-                AbstractInsnNode currentInsn = null;
-                
+												                
                 Iterator<AbstractInsnNode> insnIterator = methodNode.instructions.iterator();
                
                 while (insnIterator.hasNext()) {
                 	
                     currentInsn = insnIterator.next(); 
                     
-                    if (!descChanged && currentInsn.getOpcode() == Opcodes.INVOKESPECIAL) {                   	
-                    	
-                    	InsnList nodesList = new InsnList();
-                    	
-                    	nodesList.add(new FieldInsnNode(Opcodes.GETSTATIC, keyBindingClassName, hashFieldName, "L" + intHashMapClassName + ";"));
-                    	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "ru/austeretony/keycombs/coremod/KeyCombsHooks", "getKeyBindingsHash", "(L" + intHashMapClassName + ";)V", false));                	               
-                    	
-                    	methodNode.instructions.insert(currentInsn, nodesList); 
-                    	
-                    	descChanged = true;
-                    }
-                    
                     if (currentInsn.getOpcode() == Opcodes.RETURN) {    
                     	
                     	InsnList nodesList = new InsnList();
 
                     	nodesList.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                    	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "ru/austeretony/keycombs/coremod/KeyCombsHooks", "storeKeybinding", "(L" + keyBindingClassName + ";)V", false));
+                    	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "createPropertry", "(L" + keyBindingClassName + ";)V", false));
                     	
                     	methodNode.instructions.insertBefore(currentInsn, nodesList); 
                     	
@@ -277,9 +255,7 @@ public class KeyCombsClassTransformer implements IClassTransformer {
 			}
 			
 			if (methodNode.name.equals(isKeyPressedMethodName) && methodNode.desc.equals("()Z")) {
-				
-                AbstractInsnNode currentInsn = null;
-                
+				                
                 Iterator<AbstractInsnNode> insnIterator = methodNode.instructions.iterator();
                
                 while (insnIterator.hasNext()) {
@@ -291,7 +267,7 @@ public class KeyCombsClassTransformer implements IClassTransformer {
                     	InsnList nodesList = new InsnList();
 
                     	nodesList.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                    	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "ru/austeretony/keycombs/coremod/KeyCombsHooks", "isKeyPressed", "(L" + keyBindingClassName + ";)Z", false));
+                    	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "isKeyPressed", "(L" + keyBindingClassName + ";)Z", false));
                     	nodesList.add(new InsnNode(Opcodes.IRETURN));
                     	
                     	methodNode.instructions.insertBefore(currentInsn, nodesList); 
@@ -310,7 +286,7 @@ public class KeyCombsClassTransformer implements IClassTransformer {
 	    classNode.accept(writer);
 	    
 	    if (isSuccessful)
-        LOGGER.info("<KeyBinding.class> patched!");   
+	    	LOGGER.info("<KeyBinding.class> patched!");   
 	            
         return writer.toByteArray();				
 	}
@@ -347,13 +323,13 @@ public class KeyCombsClassTransformer implements IClassTransformer {
         int
         ifeqCount = 0,
         aloadCount = 0;
+        
+        AbstractInsnNode currentInsn;
                         
 		for (MethodNode methodNode : classNode.methods) {
 			
 			if (methodNode.name.equals(drawEntryMethodName) && methodNode.desc.equals("(IIIIIL" + tesselatorClassName + ";IIZ)V")) {
-																
-                AbstractInsnNode currentInsn = null;
-                
+																                
                 Iterator<AbstractInsnNode> insnIterator = methodNode.instructions.iterator();
                
                 while (insnIterator.hasNext()) {
@@ -379,7 +355,7 @@ public class KeyCombsClassTransformer implements IClassTransformer {
                         	nodesList.add(new VarInsnNode(Opcodes.ILOAD, 3));
                         	nodesList.add(new VarInsnNode(Opcodes.ILOAD, 7));
                         	nodesList.add(new VarInsnNode(Opcodes.ILOAD, 8));
-                        	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "ru/austeretony/keycombs/coremod/KeyCombsHooks", "drawCuiControlsKeyEntry", "(L" + guiButtonClassName + ";L" + guiButtonClassName + ";L" + keyBindingClassName + ";ZIIII)V", false));
+                        	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "drawCuiControlsKeyEntry", "(L" + guiButtonClassName + ";L" + guiButtonClassName + ";L" + keyBindingClassName + ";ZIIII)V", false));
 
 	                    	nodesList.add(new InsnNode(Opcodes.RETURN));
                         	
@@ -392,9 +368,7 @@ public class KeyCombsClassTransformer implements IClassTransformer {
 			}
 			
 			if (methodNode.name.equals(mousePressedMethodName) && methodNode.desc.equals("(IIIIII)Z")) {
-								
-                AbstractInsnNode currentInsn = null;
-                
+								                
                 Iterator<AbstractInsnNode> insnIterator = methodNode.instructions.iterator();
                
                 while (insnIterator.hasNext()) {
@@ -411,7 +385,7 @@ public class KeyCombsClassTransformer implements IClassTransformer {
                         	
                         	nodesList.add(new VarInsnNode(Opcodes.ALOAD, 0));
 	                    	nodesList.add(new FieldInsnNode(Opcodes.GETFIELD, keyEntryClassName, keyBindingFieldName, "L" + keyBindingClassName + ";"));
-                        	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "ru/austeretony/keycombs/coremod/KeyCombsHooks", "setToDefault", "(L" + keyBindingClassName + ";)V", false));
+                        	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "setToDefault", "(L" + keyBindingClassName + ";)V", false));
                         	
                         	methodNode.instructions.insertBefore(currentInsn.getNext(), nodesList); 
                     	}
@@ -430,9 +404,9 @@ public class KeyCombsClassTransformer implements IClassTransformer {
 	    if (isSuccessful) {	    	
 	    	
 	    	if (!flag)
-	    	LOGGER.info("<GuiKeyBindingList.KeyEntry.class> patched!");  
+	    		LOGGER.info("<GuiKeyBindingList.KeyEntry.class> patched!");  
 	    	else
-		    LOGGER.info("<GuiNewKeyBindingList.KeyEntry.class> (Controlling) patched!");  
+	    		LOGGER.info("<GuiNewKeyBindingList.KeyEntry.class> (Controlling) patched!");  
 	    }
 	            
         return writer.toByteArray();				
@@ -472,7 +446,7 @@ public class KeyCombsClassTransformer implements IClassTransformer {
         
         int aloadCount = 0;
         
-        AbstractInsnNode currentInsn = null;
+        AbstractInsnNode currentInsn;
 	 		
 		for (MethodNode methodNode : classNode.methods) {
 			
@@ -492,7 +466,7 @@ public class KeyCombsClassTransformer implements IClassTransformer {
                     		
                         	InsnList nodesList = new InsnList();
                         	
-                        	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "ru/austeretony/keycombs/coremod/KeyCombsHooks", "resetAllKeys", "()V", false));
+                        	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "resetAllKeys", "()V", false));
 	                    	
                         	nodesList.add(new InsnNode(Opcodes.RETURN));
                         	
@@ -528,7 +502,7 @@ public class KeyCombsClassTransformer implements IClassTransformer {
                         	nodesList.add(new IntInsnNode(Opcodes.BIPUSH, - 100));
                         	nodesList.add(new VarInsnNode(Opcodes.ILOAD, 3));
                         	nodesList.add(new InsnNode(Opcodes.IADD));
-                        	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "ru/austeretony/keycombs/coremod/KeyCombsHooks", "setKeyModifierAndCode", "(L" + keyBindingClassName + ";L" + keyModifierClassName + ";I)V", false));
+                        	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "setKeyModifierAndCode", "(L" + keyBindingClassName + ";L" + keyModifierClassName + ";I)V", false));
                         	
                         	methodNode.instructions.insertBefore(currentInsn, nodesList); 
                     		
@@ -560,7 +534,7 @@ public class KeyCombsClassTransformer implements IClassTransformer {
                         	nodesList.add(new FieldInsnNode(Opcodes.GETFIELD, guiControlsClassName, buttonIdFieldName, "L" + keyBindingClassName + ";"));
                         	nodesList.add(new FieldInsnNode(Opcodes.GETSTATIC, keyModifierClassName, "NONE", "L" + keyModifierClassName + ";"));
                         	nodesList.add(new IntInsnNode(Opcodes.BIPUSH, 0));
-                        	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "ru/austeretony/keycombs/coremod/KeyCombsHooks", "setKeyModifierAndCode", "(L" + keyBindingClassName + ";L" + keyModifierClassName + ";I)V", false));
+                        	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "setKeyModifierAndCode", "(L" + keyBindingClassName + ";L" + keyModifierClassName + ";I)V", false));
                         	
                         	methodNode.instructions.insertBefore(currentInsn, nodesList); 
                     	}  
@@ -573,7 +547,7 @@ public class KeyCombsClassTransformer implements IClassTransformer {
                         	nodesList.add(new FieldInsnNode(Opcodes.GETFIELD, guiControlsClassName, buttonIdFieldName, "L" + keyBindingClassName + ";"));
                         	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, keyModifierClassName, "getActiveModifier", "()L" + keyModifierClassName + ";", false));
                         	nodesList.add(new VarInsnNode(Opcodes.ILOAD, 2));
-                        	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "ru/austeretony/keycombs/coremod/KeyCombsHooks", "setKeyModifierAndCode", "(L" + keyBindingClassName + ";L" + keyModifierClassName + ";I)V", false));
+                        	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "setKeyModifierAndCode", "(L" + keyBindingClassName + ";L" + keyModifierClassName + ";I)V", false));
                         	
                         	methodNode.instructions.insertBefore(currentInsn, nodesList); 
                     		
@@ -588,7 +562,7 @@ public class KeyCombsClassTransformer implements IClassTransformer {
                     	nodesList.add(new VarInsnNode(Opcodes.ALOAD, 0));
                     	nodesList.add(new FieldInsnNode(Opcodes.GETFIELD, guiControlsClassName, buttonIdFieldName, "L" + keyBindingClassName + ";"));
                     	nodesList.add(new VarInsnNode(Opcodes.ILOAD, 2));
-                    	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "ru/austeretony/keycombs/coremod/KeyCombsHooks", "resetKeyBinding", "(L" + keyBindingClassName + ";I)L" + keyBindingClassName + ";", false));
+                    	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "resetKeyBinding", "(L" + keyBindingClassName + ";I)L" + keyBindingClassName + ";", false));
                                                                         
                     	methodNode.instructions.insertBefore(currentInsn, nodesList); 
                     	                    	
@@ -613,7 +587,7 @@ public class KeyCombsClassTransformer implements IClassTransformer {
                         	
                     	nodesList.add(new VarInsnNode(Opcodes.ALOAD, 0));
                     	nodesList.add(new FieldInsnNode(Opcodes.GETFIELD, guiControlsClassName, resetButtonFieldName, "L" + guiButtonClassName + ";"));
-                        nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "ru/austeretony/keycombs/coremod/KeyCombsHooks", "setResetButtonState", "(L" + guiButtonClassName + ";)V", false));
+                        nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "setResetButtonState", "(L" + guiButtonClassName + ";)V", false));
                         
                     	nodesList.add(new VarInsnNode(Opcodes.ALOAD, 0));
                     	nodesList.add(new VarInsnNode(Opcodes.ILOAD, 1));
@@ -641,9 +615,9 @@ public class KeyCombsClassTransformer implements IClassTransformer {
 	    if (isSuccessful) {
 	    	
 	    	if (!flag)
-	    	LOGGER.info("<GuiControls.class> patched!");   
+	    		LOGGER.info("<GuiControls.class> patched!");   
 	    	else
-		    LOGGER.info("<GuiNewControls.class> (Controlling) patched!");   
+	    		LOGGER.info("<GuiNewControls.class> (Controlling) patched!");   
 	    }
         
         return writer.toByteArray();				
@@ -655,20 +629,20 @@ public class KeyCombsClassTransformer implements IClassTransformer {
         ClassReader classReader = new ClassReader(basicClass);
         classReader.accept(classNode, 0);
         
-	 	String targetMethodName = obfuscated ? "p" : "runTick";
+	 	String runTickMethodName = obfuscated ? "p" : "runTick";
 	 	
         int 
         bipushCount = 0,
         iconstCount = 0;
         
         boolean isSuccessful = false;
+        
+        AbstractInsnNode currentInsn;
                         
 		for (MethodNode methodNode : classNode.methods) {
 			
-			if (methodNode.name.equals(targetMethodName) && methodNode.desc.equals("()V")) {
-												
-                AbstractInsnNode currentInsn = null;
-                
+			if (methodNode.name.equals(runTickMethodName) && methodNode.desc.equals("()V")) {
+												                
                 Iterator<AbstractInsnNode> insnIterator = methodNode.instructions.iterator();
                
                 while (insnIterator.hasNext()) {
@@ -681,7 +655,7 @@ public class KeyCombsClassTransformer implements IClassTransformer {
                     	
                     	if (bipushCount == 4 || bipushCount == 6 || bipushCount == 9 || bipushCount == 11 || bipushCount == 13 || bipushCount == 17 || bipushCount == 19 || bipushCount == 21 || bipushCount == 23 || bipushCount == 25) {
                     		
-                            methodNode.instructions.insert(currentInsn.getPrevious(), new MethodInsnNode(Opcodes.INVOKESTATIC, "ru/austeretony/keycombs/coremod/KeyCombsHooks", "getDebugMenuKeyCode", "()I", false)); 
+                            methodNode.instructions.insertBefore(currentInsn, new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "getDebugScreenKeyCode", "()I", false)); 
                     		
                     		insnIterator.remove();
                     		
@@ -693,14 +667,16 @@ public class KeyCombsClassTransformer implements IClassTransformer {
                     	
                     	if (bipushCount == 7) {
                     		
-                            methodNode.instructions.insert(currentInsn.getPrevious(), new MethodInsnNode(Opcodes.INVOKESTATIC, "ru/austeretony/keycombs/coremod/KeyCombsHooks", "getDisableShaderKeyCode", "()I", false)); 
+                            methodNode.instructions.insertBefore(currentInsn, new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "getDisableShaderKeyCode", "()I", false)); 
                     		
                     		insnIterator.remove();
                     	}
                     	                   	
                     	if (bipushCount == 24) {
                         	                                                   	
-                            methodNode.instructions.insert(currentInsn.getPrevious(), new MethodInsnNode(Opcodes.INVOKESTATIC, "ru/austeretony/keycombs/coremod/KeyCombsHooks", "getHideHUDKeyCode", "()I", false)); 
+                            methodNode.instructions.insertBefore(currentInsn, new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "isHideHUDKeyPressed", "(I)Z", false)); 
+                            
+                            ((JumpInsnNode) currentInsn.getNext()).setOpcode(Opcodes.IFEQ);
                             
                             insnIterator.remove();               
                         } 
@@ -712,8 +688,10 @@ public class KeyCombsClassTransformer implements IClassTransformer {
                     	
                     	if (iconstCount == 4) {
                     		
-                            methodNode.instructions.insert(currentInsn.getPrevious(), new MethodInsnNode(Opcodes.INVOKESTATIC, "ru/austeretony/keycombs/coremod/KeyCombsHooks", "getQuitKeyCode", "()I", false)); 
+                            methodNode.instructions.insertBefore(currentInsn, new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "isQuitKeyPressed", "(I)Z", false)); 
                     		
+                            ((JumpInsnNode) currentInsn.getNext()).setOpcode(Opcodes.IFEQ);
+                            
                     		insnIterator.remove();
                     	}
                     }
@@ -729,27 +707,27 @@ public class KeyCombsClassTransformer implements IClassTransformer {
 	    classNode.accept(writer);
 	    
 	    if (isSuccessful)
-	    LOGGER.info("<Minecraft.class> patched!");
+	    	LOGGER.info("<Minecraft.class> patched!");
 	            
         return writer.toByteArray();				
 	}
 	
-	private byte[] patchGuiScreen(byte[] basicClass, boolean obfuscated, boolean flag) {
+	private byte[] patchGuiScreen(byte[] basicClass, boolean obfuscated) {
         
 	    ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(basicClass);
         classReader.accept(classNode, 0);
         
-	 	String targetMethodName = obfuscated ? "a" : "keyTyped";  
+	 	String keyTypedMethodName = obfuscated ? "a" : "keyTyped";  
 	 	
         boolean isSuccessful = false;
+        
+        AbstractInsnNode currentInsn;
 	 		
 		for (MethodNode methodNode : classNode.methods) {
 			
-			if (methodNode.name.equals(targetMethodName) && methodNode.desc.equals("(CI)V")) {
-												
-                AbstractInsnNode currentInsn = null;
-                
+			if (methodNode.name.equals(keyTypedMethodName) && methodNode.desc.equals("(CI)V")) {
+												                
                 Iterator<AbstractInsnNode> insnIterator = methodNode.instructions.iterator();
                
                 while (insnIterator.hasNext()) {
@@ -758,7 +736,7 @@ public class KeyCombsClassTransformer implements IClassTransformer {
                     
                     if (currentInsn.getOpcode() == Opcodes.ICONST_1) {
                     		
-                        methodNode.instructions.insert(currentInsn.getPrevious(), new MethodInsnNode(Opcodes.INVOKESTATIC, "ru/austeretony/keycombs/coremod/KeyCombsHooks", "getQuitKeyCode", "()I", false)); 
+                        methodNode.instructions.insertBefore(currentInsn, new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "getQuitKeyCode", "()I", false)); 
                     		
                     	insnIterator.remove();
                     	
@@ -772,16 +750,60 @@ public class KeyCombsClassTransformer implements IClassTransformer {
 			}
 		}
 		
-	    ClassWriter writer = new ClassWriter(0);	    
+	    ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);	    
 	    classNode.accept(writer);
 	    
-	    if (isSuccessful) {
-
-	    	if (!flag) 
+	    if (isSuccessful)
 	    	LOGGER.info("<GuiScreen.class> patched!");   
-	    	else
+        
+        return writer.toByteArray();				
+	}
+	
+	private byte[] patchGuiContainer(byte[] basicClass, boolean obfuscated) {
+        
+	    ClassNode classNode = new ClassNode();
+        ClassReader classReader = new ClassReader(basicClass);
+        classReader.accept(classNode, 0);
+        
+	 	String keyTypedMethodName = obfuscated ? "a" : "keyTyped";
+	 	
+        boolean isSuccessful = false;
+        
+        int aloadCount = 0;
+        
+        AbstractInsnNode currentInsn;
+	 		
+		for (MethodNode methodNode : classNode.methods) {
+			
+			if (methodNode.name.equals(keyTypedMethodName) && methodNode.desc.equals("(CI)V")) {
+                
+                Iterator<AbstractInsnNode> insnIterator = methodNode.instructions.iterator();
+               
+                while (insnIterator.hasNext()) {
+                	
+                    currentInsn = insnIterator.next(); 
+                    
+                    if (currentInsn.getOpcode() == Opcodes.ICONST_1) {
+                    		
+                        methodNode.instructions.insertBefore(currentInsn, new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "getQuitKeyCode", "()I", false)); 
+                    		
+                    	insnIterator.remove();
+                    	
+                    	break;
+                    }
+                }
+                
+                isSuccessful = true;
+    			
+    			break;
+			}		
+		}
+		
+	    ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);	    
+	    classNode.accept(writer);
+	    
+	    if (isSuccessful)
 	    	LOGGER.info("<GuiContainer.class> patched!"); 
-	    }
         
         return writer.toByteArray();				
 	}

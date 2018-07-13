@@ -7,10 +7,7 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -23,25 +20,25 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
-import ru.austeretony.keycombs.coremod.KeyCombsClassTransformer;
-import ru.austeretony.keycombs.main.KeyCombsMain;
+import ru.austeretony.keycombs.coremod.KeyCombinationsClassTransformer;
+import ru.austeretony.keycombs.main.KeyCombinationsMain;
 
-public class KeyCombsEvents {
+public class KeyCombinationsEvents {
 
 	@SubscribeEvent
 	public void onPlayerJoinedWorld(EntityJoinWorldEvent event) {
 		
-		if (event.world.isRemote && event.entity instanceof EntityPlayer) {
-									
-			this.checkForUpdates();
+		if (event.entity.worldObj.isRemote && event.entity instanceof EntityPlayer) {
+					
+			this.checkForUpdate();
 		}
 	}
 	
-	private void checkForUpdates() {
-					
+	private void checkForUpdate() {
+							
 		try {
 			
-			URL versionsURL = new URL(KeyCombsMain.VERSIONS_URL);
+			URL versionsURL = new URL(KeyCombinationsMain.VERSIONS_URL);
 			
 			InputStream inputStream = null;
 			
@@ -52,7 +49,7 @@ public class KeyCombsEvents {
 			
 			catch (UnknownHostException exception) {
 														
-				KeyCombsClassTransformer.LOGGER.error("Update check failed, no internet connection.");
+				KeyCombinationsClassTransformer.LOGGER.error("Update check failed, no internet connection.");
 				
 				return;
 			}
@@ -61,29 +58,18 @@ public class KeyCombsEvents {
 			
             inputStream.close();
             
-            JsonObject data = remoteData.get(KeyCombsMain.GAME_VERSION).getAsJsonObject();
+            JsonObject data = remoteData.get(KeyCombinationsMain.GAME_VERSION).getAsJsonObject();                     	        
             
-            String newVersion = data.get("available").getAsString();
-            	            
-            int 
-            availableVersion = Integer.valueOf(newVersion.replace(".", "")),
-            currentVersion = Integer.valueOf(KeyCombsMain.VERSION.replace(".", ""));
+            String availableVersion = data.get("available").getAsString();
             
-            if (currentVersion < availableVersion) {
-            	
-            	List<String> changelog = new ArrayList<String>();
-            	
-            	for (JsonElement element : data.get("changelog").getAsJsonArray()) {
-            		
-            		changelog.add(element.getAsString());
-            	}
-            	
+            if (this.compareVersions(KeyCombinationsMain.VERSION, availableVersion)) {	
+            	            	
             	EntityPlayer player = Minecraft.getMinecraft().thePlayer;
             	
             	IChatComponent 
-            	updateMessage = new ChatComponentText("[Key Combinations] " + I18n.format("keycombs.update.newVersion") + " [" + KeyCombsMain.VERSION + "/" + newVersion + "]"),
+            	updateMessage = new ChatComponentText("[Key Combinations] " + I18n.format("keycombs.update.newVersion") + " [" + KeyCombinationsMain.VERSION + "/" + availableVersion + "]"),
             	pageMessage = new ChatComponentText(I18n.format("keycombs.update.projectPage") + ": "),
-            	urlMessage = new ChatComponentText(KeyCombsMain.PROJECT_URL);
+            	urlMessage = new ChatComponentText(KeyCombinationsMain.PROJECT_URL);
             
             	updateMessage.getChatStyle().setColor(EnumChatFormatting.AQUA);
             	pageMessage.getChatStyle().setColor(EnumChatFormatting.AQUA);
@@ -103,12 +89,42 @@ public class KeyCombsEvents {
 		
 		catch (FileNotFoundException exception) {
 			
-			KeyCombsClassTransformer.LOGGER.error("Update check failed, remote file is absent.");			
+			KeyCombinationsClassTransformer.LOGGER.error("Update check failed, remote file is absent.");			
 		}
 		
 		catch (IOException exception) {
-						
+			
 			exception.printStackTrace();
 		}
+	}
+	
+	private boolean compareVersions(String currentVersion, String availableVersion) {
+								
+		String[] 
+		cVer = currentVersion.split("[.]"),
+		aVer = availableVersion.split("[.]");
+				
+		int diff;
+		
+		for (int i = 0; i < cVer.length; i++) {
+					
+			try {
+				
+				diff = Integer.parseInt(aVer[i]) - Integer.parseInt(cVer[i]);
+												
+				if (diff > 0)
+					return true;
+				
+				if (diff < 0)
+					return false;
+			}
+			
+			catch (NumberFormatException exception) {
+				
+				exception.printStackTrace();
+			}
+		}
+		
+		return false;
 	}
 }

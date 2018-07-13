@@ -6,12 +6,12 @@ import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin.TransformerExclusions;
 
 @TransformerExclusions({"ru.austeretony.keycombs.coremod"})
-public class KeyCombsCorePlugin implements IFMLLoadingPlugin {
+public class KeyCombinationsCorePlugin implements IFMLLoadingPlugin {
 		
     @Override
     public String[] getASMTransformerClass() {
     	
-        return new String[] {KeyCombsClassTransformer.class.getName()};
+        return new String[] {KeyCombinationsClassTransformer.class.getName()};
     }
 
     @Override
