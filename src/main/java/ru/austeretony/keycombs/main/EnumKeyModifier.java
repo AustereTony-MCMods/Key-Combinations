@@ -1,7 +1,5 @@
 package ru.austeretony.keycombs.main;
 
-import javax.annotation.Nullable;
-
 import org.lwjgl.input.Keyboard;
 
 import net.minecraft.client.Minecraft;
@@ -22,7 +20,7 @@ public enum EnumKeyModifier {
         }
         
         @Override
-        public boolean isActive(@Nullable EnumKeyConflictContext conflictContext) {
+        public boolean isActive(EnumKeyConflictContext conflictContext) {
         	
             return GuiScreen.isCtrlKeyDown();
         }
@@ -47,7 +45,7 @@ public enum EnumKeyModifier {
         }
         
         @Override
-        public boolean isActive(@Nullable EnumKeyConflictContext conflictContext) {
+        public boolean isActive(EnumKeyConflictContext conflictContext) {
         	
             return GuiScreen.isShiftKeyDown();
         }
@@ -70,7 +68,7 @@ public enum EnumKeyModifier {
         }
         
         @Override
-        public boolean isActive(@Nullable EnumKeyConflictContext conflictContext) {
+        public boolean isActive(EnumKeyConflictContext conflictContext) {
         	
             return isAltKeyDown();
         }
@@ -93,7 +91,7 @@ public enum EnumKeyModifier {
         }
         
         @Override
-        public boolean isActive(@Nullable EnumKeyConflictContext conflictContext) {
+        public boolean isActive(EnumKeyConflictContext conflictContext) {
         	
             if (conflictContext != null && !conflictContext.conflicts(EnumKeyConflictContext.IN_GAME)) {
             	
@@ -158,7 +156,7 @@ public enum EnumKeyModifier {
 
     public abstract boolean match(int keyCode);
     
-    public abstract boolean isActive(@Nullable EnumKeyConflictContext conflictContext);
+    public abstract boolean isActive(EnumKeyConflictContext conflictContext);
 
     public abstract String getLocalizedName(int keyCode);
 }

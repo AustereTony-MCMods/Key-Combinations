@@ -1,7 +1,9 @@
-key.exit=Quit
+key.quit=Quit
 key.hideHUD=Hide HUD
+key.screenshot=Take Screenshot
 key.debugScreen=Debug Screen
-key.disableShader=Disable Shader
+key.togglePerspective=Toggle Perspective
+key.smoothCamera=Cinematic Camera
+key.fullscreen=Fullscreen
 
 keycombs.update.newVersion=New version available!
-keycombs.update.projectPage=Link

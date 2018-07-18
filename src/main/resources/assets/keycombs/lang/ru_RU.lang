@@ -1,7 +1,9 @@
 key.quit=Выход
 key.hideHUD=Спрятать HUD
-key.debugScreen=Экран Отладки
-key.disableShader=Отключить Шейдер
+key.screenshot=Сделать снимок экрана
+key.debugScreen=Экран отладки
+key.togglePerspective=Переключить перспективу
+key.smoothCamera=Кинематографическая камера
+key.fullscreen=Полноэкранный режим
 
 keycombs.update.newVersion=Доступна новая версия!
-keycombs.update.projectPage=Сайт

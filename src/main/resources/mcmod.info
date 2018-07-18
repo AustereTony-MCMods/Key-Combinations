@@ -2,9 +2,9 @@
 {
   "modid": "keycombs",
   "name": "Key Combinations",
-  "description": "Key combinations from newest versoins for MC 1.7.10.",
-  "version": "1.1.1",
-  "mcversion": "1.7.10",
+  "description": "Key combinations from newest versoins for MC 1.6.4.",
+  "version": "1.1.0",
+  "mcversion": "1.6.4",
   "url": "https://minecraft.curseforge.com/projects/key-combinations",
   "updateUrl": "",
   "authorList": ["AustereTony"],

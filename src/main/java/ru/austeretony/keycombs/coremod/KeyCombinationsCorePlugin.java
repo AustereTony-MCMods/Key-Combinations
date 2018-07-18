@@ -33,12 +33,6 @@ public class KeyCombinationsCorePlugin implements IFMLLoadingPlugin {
     	
     	isObfuscated = (boolean) data.get("runtimeDeobfuscationEnabled");
     }
-
-    @Override
-    public String getAccessTransformerClass() {
-    	
-        return null;
-    }
     
     public static boolean isObfuscated() {
     	
