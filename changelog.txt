@@ -1,3 +1,6 @@
+1.1.1
++Minor fixes.
+
 1.1.0
 +Fixed minor errors and code clean up.
 +Fixed server crash if installed on server.
