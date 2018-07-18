@@ -22,81 +22,43 @@ import net.minecraft.launchwrapper.IClassTransformer;
 
 public class KeyCombinationsClassTransformer implements IClassTransformer {
 
-	public static final Logger LOGGER = LogManager.getLogger("Key Combinations Core");
+	public static final Logger CORE_LOGGER = LogManager.getLogger("Key Combinations Core");
 	
 	private static final String HOOKS_CLASS = "ru/austeretony/keycombs/coremod/KeyCombinationsHooks";
 	
     @Override
     public byte[] transform(String name, String transformedName, byte[] basicClass) {    	
     	
-    	switch (name) {
+    	switch (transformedName) {
     	
-			case "bbj":					
-				return patchGameSettings(basicClass, true);
-
 			case "net.minecraft.client.settings.GameSettings":							
-				return patchGameSettings(basicClass, false);
-				
-			
-			case "bal":									
-				return patchKeyBinding(basicClass, true);
-
+				return patchGameSettings(basicClass);
 			case "net.minecraft.client.settings.KeyBinding":		
-				return patchKeyBinding(basicClass, false);
-    	
-			case "bev":									
-				return patchKeyEntry(basicClass, true, false);
-
+				return patchKeyBinding(basicClass);
 			case "net.minecraft.client.gui.GuiKeyBindingList$KeyEntry":		
-				return patchKeyEntry(basicClass, false, false);	
-				
-			case "us.getfluxed.controlsearch.client.gui.GuiNewKeyBindingList$KeyEntry":		
-				return patchKeyEntry(basicClass, true, true);	
-					
-					
-			case "bew":									
-				return patchGuiControls(basicClass, true, false);
-
+				return patchKeyEntry(basicClass);					
 			case "net.minecraft.client.gui.GuiControls":		
-				return patchGuiControls(basicClass, false, false);	
-				
-			case "us.getfluxed.controlsearch.client.gui.GuiNewControls":		
-				return patchGuiControls(basicClass, true, true);	
-				
-			
-			case "bao":					
-				return patchMinecraft(basicClass, true);
-		
+				return patchGuiControls(basicClass);						
 			case "net.minecraft.client.Minecraft":							
-	    		return patchMinecraft(basicClass, false);	
-	    		
-			
-			case "bdw":					
-				return patchGuiScreen(basicClass, true);
-		
+	    		return patchMinecraft(basicClass);		
 			case "net.minecraft.client.gui.GuiScreen":							
-	    		return patchGuiScreen(basicClass, false);	
-	    		
-			
-			case "bex":					
-				return patchGuiContainer(basicClass, true);
-		
+	    		return patchGuiScreen(basicClass, true);			
 			case "net.minecraft.client.gui.inventory.GuiContainer":							
-	    		return patchGuiContainer(basicClass, false);
+	    		return patchGuiScreen(basicClass, false);
     	}	
     	
 		return basicClass;
     }
     
-	private byte[] patchGameSettings(byte[] basicClass, boolean obfuscated) {
+	private byte[] patchGameSettings(byte[] basicClass) {
 		
 	    ClassNode classNode = new ClassNode();
 	    ClassReader classReader = new ClassReader(basicClass);
 	    classReader.accept(classNode, 0);
 	    
 	 	String 
-	 	loadOptionsMethodName = obfuscated ? "a" : "loadOptions",
-	 	saveOptionsMethodName = obfuscated ? "b" : "saveOptions",
+	 	loadOptionsMethodName = KeyCombinationsCorePlugin.isObfuscated() ? "a" : "loadOptions",
+	 	saveOptionsMethodName = KeyCombinationsCorePlugin.isObfuscated() ? "b" : "saveOptions",
 	    stringClassName = "java/lang/String",
 	 	printWriterClassName = "java/io/PrintWriter";
 	 		 		    
@@ -161,23 +123,23 @@ public class KeyCombinationsClassTransformer implements IClassTransformer {
 	    classNode.accept(writer);
 	    
 	    if (isSuccessful)
-	    	LOGGER.info("<GameSettings.class> patched!");   
+	    	CORE_LOGGER.info("<GameSettings.class> patched!");   
 	    	    
 	    return writer.toByteArray();	
 	}
 	
-	private byte[] patchKeyBinding(byte[] basicClass, boolean obfuscated) {
+	private byte[] patchKeyBinding(byte[] basicClass) {
         
 	    ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(basicClass);
         classReader.accept(classNode, 0);
         
 	 	String 
-	 	onTickMethodName = obfuscated ? "a" : "onTick",
-	 	isKeyPressedMethodName = obfuscated ? "d" : "getIsKeyPressed",
-	 	setKeyBindStateMethodName = obfuscated ? "a" : "setKeyBindState",
+	 	onTickMethodName = KeyCombinationsCorePlugin.isObfuscated() ? "a" : "onTick",
+	 	isKeyPressedMethodName = KeyCombinationsCorePlugin.isObfuscated() ? "d" : "getIsKeyPressed",
+	 	setKeyBindStateMethodName = KeyCombinationsCorePlugin.isObfuscated() ? "a" : "setKeyBindState",
 	 	stringClassName = "java/lang/String",
-	 	keyBindingClassName = obfuscated ? "bal" : "net/minecraft/client/settings/KeyBinding";
+	 	keyBindingClassName = KeyCombinationsCorePlugin.isObfuscated() ? "bal" : "net/minecraft/client/settings/KeyBinding";
 
         boolean isSuccessful = false;
         
@@ -286,37 +248,27 @@ public class KeyCombinationsClassTransformer implements IClassTransformer {
 	    classNode.accept(writer);
 	    
 	    if (isSuccessful)
-	    	LOGGER.info("<KeyBinding.class> patched!");   
+	    	CORE_LOGGER.info("<KeyBinding.class> patched!");   
 	            
         return writer.toByteArray();				
 	}
 	
-	private byte[] patchKeyEntry(byte[] basicClass, boolean obfuscated, boolean flag) {
+	private byte[] patchKeyEntry(byte[] basicClass) {
 				        
 	    ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(basicClass);
         classReader.accept(classNode, 0);
         
 	 	String
-	 	changeButtonFieldName = obfuscated ? "d" : "btnChangeKeyBinding",
-	 	resetButtonFieldName = obfuscated ? "e" : "btnReset",
-	 	keyBindingFieldName = obfuscated ? "b" : "field_148282_b",
-	 	drawEntryMethodName = obfuscated ? "a" : "drawEntry",
-	    mousePressedMethodName = obfuscated ? "a" : "mousePressed",
-	 	keyEntryClassName = obfuscated ? "bev" : "net/minecraft/client/gui/GuiKeyBindingList$KeyEntry",
-	    tesselatorClassName = obfuscated ? "bmh" : "net/minecraft/client/renderer/Tessellator",
-	    guiButtonClassName = obfuscated ? "bcb" : "net/minecraft/client/gui/GuiButton",
-	 	keyBindingClassName = obfuscated ? "bal" : "net/minecraft/client/settings/KeyBinding";
-        
-	 	if (flag) {
-	 		
-		 	changeButtonFieldName = "btnChangeKeyBinding";
-		    resetButtonFieldName = "btnReset";
-		 	keyBindingFieldName = "keybinding";
-		 	drawEntryMethodName = "func_148279_a";
-		 	mousePressedMethodName = "func_148278_a";
-	 		keyEntryClassName = "us/getfluxed/controlsearch/client/gui/GuiNewKeyBindingList$KeyEntry";
-	 	}
+	 	changeButtonFieldName = KeyCombinationsCorePlugin.isObfuscated() ? "d" : "btnChangeKeyBinding",
+	 	resetButtonFieldName = KeyCombinationsCorePlugin.isObfuscated() ? "e" : "btnReset",
+	 	keyBindingFieldName = KeyCombinationsCorePlugin.isObfuscated() ? "b" : "field_148282_b",
+	 	drawEntryMethodName = KeyCombinationsCorePlugin.isObfuscated() ? "a" : "drawEntry",
+	    mousePressedMethodName = KeyCombinationsCorePlugin.isObfuscated() ? "a" : "mousePressed",
+	 	keyEntryClassName = KeyCombinationsCorePlugin.isObfuscated() ? "bev" : "net/minecraft/client/gui/GuiKeyBindingList$KeyEntry",
+	    tesselatorClassName = KeyCombinationsCorePlugin.isObfuscated() ? "bmh" : "net/minecraft/client/renderer/Tessellator",
+	    guiButtonClassName = KeyCombinationsCorePlugin.isObfuscated() ? "bcb" : "net/minecraft/client/gui/GuiButton",
+	 	keyBindingClassName = KeyCombinationsCorePlugin.isObfuscated() ? "bal" : "net/minecraft/client/settings/KeyBinding";
 	 	
         boolean isSuccessful = false;
         
@@ -401,46 +353,30 @@ public class KeyCombinationsClassTransformer implements IClassTransformer {
 	    ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);	    
 	    classNode.accept(writer);
 	    
-	    if (isSuccessful) {	    	
-	    	
-	    	if (!flag)
-	    		LOGGER.info("<GuiKeyBindingList.KeyEntry.class> patched!");  
-	    	else
-	    		LOGGER.info("<GuiNewKeyBindingList.KeyEntry.class> (Controlling) patched!");  
-	    }
+	    if (isSuccessful)
+	    	CORE_LOGGER.info("<GuiKeyBindingList.KeyEntry.class> patched!");  
 	            
         return writer.toByteArray();				
 	}
     
-	private byte[] patchGuiControls(byte[] basicClass, boolean obfuscated, boolean flag) {
+	private byte[] patchGuiControls(byte[] basicClass) {
         
 	    ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(basicClass);
         classReader.accept(classNode, 0);
         
 	 	String 
-	 	buttonIdFieldName = obfuscated ? "f" : "buttonId",
-	 	resetButtonFieldName = obfuscated ? "t" : "field_146493_s",
-	 	actionPerformedMethodName = obfuscated ? "a" : "actionPerformed",
-	 	mouseClickedMethodName = obfuscated ? "a" : "mouseClicked",
-	 	keyTypedMethodName = obfuscated ? "a" : "keyTyped",
-	 	drawScreenMethodName = obfuscated ? "a" : "drawScreen",
-	 	guiScreenClassName = obfuscated ? "bdw" : "net/minecraft/client/gui/GuiScreen",
-	 	guiButtonClassName = obfuscated ? "bcb" : "net/minecraft/client/gui/GuiButton",
+	 	buttonIdFieldName = KeyCombinationsCorePlugin.isObfuscated() ? "f" : "buttonId",
+	 	resetButtonFieldName = KeyCombinationsCorePlugin.isObfuscated() ? "t" : "field_146493_s",
+	 	actionPerformedMethodName = KeyCombinationsCorePlugin.isObfuscated() ? "a" : "actionPerformed",
+	 	mouseClickedMethodName = KeyCombinationsCorePlugin.isObfuscated() ? "a" : "mouseClicked",
+	 	keyTypedMethodName = KeyCombinationsCorePlugin.isObfuscated() ? "a" : "keyTyped",
+	 	drawScreenMethodName = KeyCombinationsCorePlugin.isObfuscated() ? "a" : "drawScreen",
+	 	guiScreenClassName = KeyCombinationsCorePlugin.isObfuscated() ? "bdw" : "net/minecraft/client/gui/GuiScreen",
+	 	guiButtonClassName = KeyCombinationsCorePlugin.isObfuscated() ? "bcb" : "net/minecraft/client/gui/GuiButton",
 	 	keyModifierClassName = "ru/austeretony/keycombs/main/EnumKeyModifier",
-	 	guiControlsClassName = obfuscated ? "bew" : "net/minecraft/client/gui/GuiControls",
-	 	keyBindingClassName = obfuscated ? "bal" : "net/minecraft/client/settings/KeyBinding";
-	 	
-	 	if (flag) {
-	 		
-		 	buttonIdFieldName = "buttonId";
-		 	resetButtonFieldName = "buttonReset";
-		 	actionPerformedMethodName = "func_146284_a";
-		 	mouseClickedMethodName = "func_73864_a";
-		 	keyTypedMethodName = "func_73869_a";
-		 	drawScreenMethodName = "func_73863_a";
-	 		guiControlsClassName = "us/getfluxed/controlsearch/client/gui/GuiNewControls";
-	 	}
+	 	guiControlsClassName = KeyCombinationsCorePlugin.isObfuscated() ? "bew" : "net/minecraft/client/gui/GuiControls",
+	 	keyBindingClassName = KeyCombinationsCorePlugin.isObfuscated() ? "bal" : "net/minecraft/client/settings/KeyBinding";
 	 	
         boolean isSuccessful = false;
         
@@ -612,24 +548,19 @@ public class KeyCombinationsClassTransformer implements IClassTransformer {
 	    ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);	    
 	    classNode.accept(writer);
 	    
-	    if (isSuccessful) {
-	    	
-	    	if (!flag)
-	    		LOGGER.info("<GuiControls.class> patched!");   
-	    	else
-	    		LOGGER.info("<GuiNewControls.class> (Controlling) patched!");   
-	    }
+	    if (isSuccessful)
+	    	CORE_LOGGER.info("<GuiControls.class> patched!");    
         
         return writer.toByteArray();				
 	}
 	
-	private byte[] patchMinecraft(byte[] basicClass, boolean obfuscated) {
+	private byte[] patchMinecraft(byte[] basicClass) {
 		        
 	    ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(basicClass);
         classReader.accept(classNode, 0);
         
-	 	String runTickMethodName = obfuscated ? "p" : "runTick";
+	 	String runTickMethodName = KeyCombinationsCorePlugin.isObfuscated() ? "p" : "runTick";
 	 	
         int 
         bipushCount = 0,
@@ -707,18 +638,18 @@ public class KeyCombinationsClassTransformer implements IClassTransformer {
 	    classNode.accept(writer);
 	    
 	    if (isSuccessful)
-	    	LOGGER.info("<Minecraft.class> patched!");
+	    	CORE_LOGGER.info("<Minecraft.class> patched!");
 	            
         return writer.toByteArray();				
 	}
 	
-	private byte[] patchGuiScreen(byte[] basicClass, boolean obfuscated) {
+	private byte[] patchGuiScreen(byte[] basicClass, boolean flag) {
         
 	    ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(basicClass);
         classReader.accept(classNode, 0);
         
-	 	String keyTypedMethodName = obfuscated ? "a" : "keyTyped";  
+	 	String keyTypedMethodName = KeyCombinationsCorePlugin.isObfuscated() ? "a" : "keyTyped";  
 	 	
         boolean isSuccessful = false;
         
@@ -753,57 +684,13 @@ public class KeyCombinationsClassTransformer implements IClassTransformer {
 	    ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);	    
 	    classNode.accept(writer);
 	    
-	    if (isSuccessful)
-	    	LOGGER.info("<GuiScreen.class> patched!");   
-        
-        return writer.toByteArray();				
-	}
-	
-	private byte[] patchGuiContainer(byte[] basicClass, boolean obfuscated) {
-        
-	    ClassNode classNode = new ClassNode();
-        ClassReader classReader = new ClassReader(basicClass);
-        classReader.accept(classNode, 0);
-        
-	 	String keyTypedMethodName = obfuscated ? "a" : "keyTyped";
-	 	
-        boolean isSuccessful = false;
-        
-        int aloadCount = 0;
-        
-        AbstractInsnNode currentInsn;
-	 		
-		for (MethodNode methodNode : classNode.methods) {
-			
-			if (methodNode.name.equals(keyTypedMethodName) && methodNode.desc.equals("(CI)V")) {
-                
-                Iterator<AbstractInsnNode> insnIterator = methodNode.instructions.iterator();
-               
-                while (insnIterator.hasNext()) {
-                	
-                    currentInsn = insnIterator.next(); 
-                    
-                    if (currentInsn.getOpcode() == Opcodes.ICONST_1) {
-                    		
-                        methodNode.instructions.insertBefore(currentInsn, new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "getQuitKeyCode", "()I", false)); 
-                    		
-                    	insnIterator.remove();
-                    	
-                    	break;
-                    }
-                }
-                
-                isSuccessful = true;
-    			
-    			break;
-			}		
-		}
-		
-	    ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);	    
-	    classNode.accept(writer);
-	    
-	    if (isSuccessful)
-	    	LOGGER.info("<GuiContainer.class> patched!"); 
+	    if (isSuccessful) {
+	    	
+	    	if (flag)
+	    		CORE_LOGGER.info("<GuiScreen.class> patched!");
+	    	else
+	    		CORE_LOGGER.info("<GuiContainer.class> patched!");
+	    }
         
         return writer.toByteArray();				
 	}

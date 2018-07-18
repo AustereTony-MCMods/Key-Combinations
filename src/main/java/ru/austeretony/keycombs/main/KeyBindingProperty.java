@@ -213,8 +213,8 @@ public class KeyBindingProperty {
     	PROPERTIES_BY_KEYBINDINGS.get(gameSetings.keyBindTogglePerspective).setKeyConflictContext(inGame);
     	PROPERTIES_BY_KEYBINDINGS.get(gameSetings.keyBindSmoothCamera).setKeyConflictContext(inGame);
     	
-    	PROPERTIES_BY_KEYBINDINGS.get(KeyCombinationsMain.Registry.KEY_HIDE_HUD).setKeyConflictContext(inGame);
-    	PROPERTIES_BY_KEYBINDINGS.get(KeyCombinationsMain.Registry.KEY_DEBUG_SCREEN).setKeyConflictContext(inGame);
-    	PROPERTIES_BY_KEYBINDINGS.get(KeyCombinationsMain.Registry.KEY_DISABLE_SHADER).setKeyConflictContext(inGame);
+    	PROPERTIES_BY_KEYBINDINGS.get(KeyCombinationsMain.keyBindingHideHUD).setKeyConflictContext(inGame);
+    	PROPERTIES_BY_KEYBINDINGS.get(KeyCombinationsMain.keyBindingDebugScreen).setKeyConflictContext(inGame);
+    	PROPERTIES_BY_KEYBINDINGS.get(KeyCombinationsMain.keyBindingDisableShader).setKeyConflictContext(inGame);
     }
 }

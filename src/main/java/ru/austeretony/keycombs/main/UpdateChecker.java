@@ -1,4 +1,4 @@
-package ru.austeretony.keycombs.event;
+package ru.austeretony.keycombs.main;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -20,27 +20,23 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
-import ru.austeretony.keycombs.coremod.KeyCombinationsClassTransformer;
-import ru.austeretony.keycombs.main.KeyCombinationsMain;
 
-public class KeyCombinationsEvents {
+public class UpdateChecker {
 
 	@SubscribeEvent
 	public void onPlayerJoinedWorld(EntityJoinWorldEvent event) {
 		
-		if (event.entity.worldObj.isRemote && event.entity instanceof EntityPlayer) {
-					
-			this.checkForUpdate();
-		}
+		if (event.world.isRemote && event.entity instanceof EntityPlayer)					
+			this.checkForUpdates();
 	}
 	
-	private void checkForUpdate() {
+	private void checkForUpdates() {
 							
 		try {
 			
 			URL versionsURL = new URL(KeyCombinationsMain.VERSIONS_URL);
 			
-			InputStream inputStream = null;
+			InputStream inputStream;
 			
 			try {
 				
@@ -49,7 +45,7 @@ public class KeyCombinationsEvents {
 			
 			catch (UnknownHostException exception) {
 														
-				KeyCombinationsClassTransformer.LOGGER.error("Update check failed, no internet connection.");
+				KeyCombinationsMain.LOGGER.error("Update check failed, no internet connection.");
 				
 				return;
 			}
@@ -58,8 +54,20 @@ public class KeyCombinationsEvents {
 			
             inputStream.close();
             
-            JsonObject data = remoteData.get(KeyCombinationsMain.GAME_VERSION).getAsJsonObject();                     	        
+            JsonObject data;  
             
+            try {
+            	
+            	data = remoteData.get(KeyCombinationsMain.GAME_VERSION).getAsJsonObject();      
+            }
+            
+            catch (NullPointerException exception) {
+            	
+            	KeyCombinationsMain.LOGGER.error("Update check failed, remote data is undefined for " + KeyCombinationsMain.GAME_VERSION + " version.");
+            	
+            	return;
+            }
+                           
             String availableVersion = data.get("available").getAsString();
             
             if (this.compareVersions(KeyCombinationsMain.VERSION, availableVersion)) {	
@@ -89,7 +97,7 @@ public class KeyCombinationsEvents {
 		
 		catch (FileNotFoundException exception) {
 			
-			KeyCombinationsClassTransformer.LOGGER.error("Update check failed, remote file is absent.");			
+			KeyCombinationsMain.LOGGER.error("Update check failed, remote file is absent.");			
 		}
 		
 		catch (IOException exception) {

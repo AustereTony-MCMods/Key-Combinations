@@ -14,27 +14,27 @@ public class KeyCombinationsHooks {
 					
 	public static int getQuitKeyCode() {
 		
-		return KeyCombinationsMain.Registry.KEY_QUIT.getKeyCode();
+		return KeyCombinationsMain.keyBindingQuit.getKeyCode();
 	}
 
 	public static boolean isQuitKeyPressed(int key) {
 		
-		return KeyBindingProperty.get(KeyCombinationsMain.Registry.KEY_QUIT).isActiveAndMatch(key);
+		return KeyBindingProperty.get(KeyCombinationsMain.keyBindingQuit).isActiveAndMatch(key);
 	}
 
 	public static boolean isHideHUDKeyPressed(int key) {
 		
-		return KeyBindingProperty.get(KeyCombinationsMain.Registry.KEY_HIDE_HUD).isActiveAndMatch(key);
+		return KeyBindingProperty.get(KeyCombinationsMain.keyBindingHideHUD).isActiveAndMatch(key);
 	}
 	
 	public static int getDebugScreenKeyCode() {
 				
-		return KeyCombinationsMain.Registry.KEY_DEBUG_SCREEN.isPressed() ? KeyCombinationsMain.Registry.KEY_DEBUG_SCREEN.getKeyCode() : 0;
+		return KeyCombinationsMain.keyBindingDebugScreen.isPressed() ? KeyCombinationsMain.keyBindingDebugScreen.getKeyCode() : 0;
 	}
 	
 	public static int getDisableShaderKeyCode() {
 		
-		return KeyCombinationsMain.Registry.KEY_DISABLE_SHADER.isPressed() ? KeyCombinationsMain.Registry.KEY_DISABLE_SHADER.getKeyCode() : 0;
+		return KeyCombinationsMain.keyBindingDisableShader.isPressed() ? KeyCombinationsMain.keyBindingDisableShader.getKeyCode() : 0;
 	}
 	
 	public static void createPropertry(KeyBinding keyBinding) {
