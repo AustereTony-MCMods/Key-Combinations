@@ -18,5 +18,16 @@
 			
 		"Minor fixes."
 	]
+},
+
+"1.8.9": {
+
+	"available": "1.1.0",
+		
+	"changelog": [
+			
+		"Fixed minor errors and code clean up.",
+		"Fixed server crash if installed on server."
+	]
 }
 }
