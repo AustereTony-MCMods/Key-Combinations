@@ -11,7 +11,37 @@ import ru.austeretony.keycombs.main.KeyBindingProperty;
 import ru.austeretony.keycombs.main.KeyCombinationsMain;
 
 public class KeyCombinationsHooks {
-					
+	
+    public static void onTick(int keyCode) {
+    	
+        if (keyCode != 0) {
+        	
+        	KeyBinding keybinding = KeyBindingProperty.lookupActive(keyCode);
+        	
+            if (keybinding != null) {
+            	
+                ++keybinding.pressTime;
+            }
+        }
+    }
+	
+	public static void setKeyBindState(int keyCode, boolean state) {
+		
+        if (keyCode != 0) {
+        	
+            for (KeyBinding key : KeyBindingProperty.lookupAll(keyCode)) {
+
+            	if (key != null)	        	
+            		key.pressed = state;  
+            }
+        }
+	}
+	
+	public static boolean isKeyDown(KeyBinding key) {
+				
+		return KeyBindingProperty.get(key).isKeyDown();
+	}
+	
 	public static int getQuitKeyCode() {
 		
 		return KeyCombinationsMain.keyBindingQuit.getKeyCode();
@@ -38,7 +68,7 @@ public class KeyCombinationsHooks {
 	}
 	
 	public static void createPropertry(KeyBinding keyBinding) {
-				
+		
 		KeyBindingProperty.create(keyBinding);
 	}
 	
@@ -55,20 +85,20 @@ public class KeyCombinationsHooks {
 		return key;
 	}
 	
-	public static void drawCuiControlsKeyEntry(GuiButton changeKeyButton, GuiButton resetButton, KeyBinding key, boolean flag, int par2, int par3, int par7, int par8) {
+	public static void drawCuiControlsKeyEntry(GuiButton changeKeyButton, GuiButton resetButton, KeyBinding key, boolean flag, int x, int y, int mouseX, int mouseY) {
 		
 		KeyBindingProperty 
 		property = KeyBindingProperty.get(key),
 		otherProperty;
 
-        resetButton.xPosition = par2 + 210;
-        resetButton.yPosition = par3;
+        resetButton.xPosition = x + 210;
+        resetButton.yPosition = y;
         resetButton.enabled = !property.isSetToDefaultValue();
-        resetButton.drawButton(Minecraft.getMinecraft(), par7, par8);
+        resetButton.drawButton(Minecraft.getMinecraft(), mouseX, mouseY);
                    
         changeKeyButton.width = 95;
-        changeKeyButton.xPosition = par2 + 105;
-        changeKeyButton.yPosition = par3;
+        changeKeyButton.xPosition = x + 105;
+        changeKeyButton.yPosition = y;
         changeKeyButton.displayString = property.getDisplayName();
         
         boolean 
@@ -95,7 +125,7 @@ public class KeyCombinationsHooks {
         else if (flag1)        	
         	changeKeyButton.displayString = (keyCodeModifierConflict ? EnumChatFormatting.GOLD : EnumChatFormatting.RED) + changeKeyButton.displayString;
         
-        changeKeyButton.drawButton(Minecraft.getMinecraft(), par7, par8);
+        changeKeyButton.drawButton(Minecraft.getMinecraft(), mouseX, mouseY);
 	}
 
 	public static void setResetButtonState(GuiButton resetAllButton) {
@@ -177,27 +207,5 @@ public class KeyCombinationsHooks {
 		}
         
         return false;
-	}
-	
-	public static KeyBinding lookupActive(int keyCode) {
-		
-		return KeyBindingProperty.lookupActive(keyCode);
-	}
-	
-	public static void setKeybindingsState(int keyCode, boolean state) {
-		
-        if (keyCode != 0) {
-        	
-            for (KeyBinding key : KeyBindingProperty.lookupAll(keyCode)) {
-
-            	if (key != null)	        	
-            		key.pressed = state;  
-            }
-        }
-	}
-	
-	public static boolean isKeyPressed(KeyBinding key) {
-				
-		return KeyBindingProperty.get(key).isKeyDown();
 	}
 }

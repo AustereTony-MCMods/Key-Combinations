@@ -11,7 +11,6 @@ import java.net.UnknownHostException;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
@@ -20,13 +19,14 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 public class UpdateChecker {
 
 	@SubscribeEvent
 	public void onPlayerJoinedWorld(EntityJoinWorldEvent event) {
 		
-		if (event.world.isRemote && event.entity instanceof EntityPlayer)					
+		if (event.world.isRemote && event.entity instanceof EntityPlayer)				
 			this.checkForUpdates();
 	}
 	
@@ -71,20 +71,17 @@ public class UpdateChecker {
             String availableVersion = data.get("available").getAsString();
             
             if (this.compareVersions(KeyCombinationsMain.VERSION, availableVersion)) {	
-            	            	
+            	
             	EntityPlayer player = Minecraft.getMinecraft().thePlayer;
             	
             	IChatComponent 
-            	updateMessage = new ChatComponentText("[Key Combinations] " + I18n.format("keycombs.update.newVersion") + " [" + KeyCombinationsMain.VERSION + "/" + availableVersion + "]"),
+            	updateMessage = new ChatComponentText("[ReBind] " + I18n.format("keycombs.update.newVersion") + " [" + KeyCombinationsMain.VERSION + "/" + availableVersion + "]"),
             	pageMessage = new ChatComponentText(I18n.format("keycombs.update.projectPage") + ": "),
-            	urlMessage = new ChatComponentText(KeyCombinationsMain.PROJECT_URL);
-            
+            	urlMessage = new ChatComponentText(KeyCombinationsMain.PROJECT_URL);            
             	updateMessage.getChatStyle().setColor(EnumChatFormatting.AQUA);
             	pageMessage.getChatStyle().setColor(EnumChatFormatting.AQUA);
-            	urlMessage.getChatStyle().setColor(EnumChatFormatting.WHITE);
-            	
-            	urlMessage.getChatStyle().setChatClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, urlMessage.getUnformattedText()));
-            	
+            	urlMessage.getChatStyle().setColor(EnumChatFormatting.WHITE);            	
+            	urlMessage.getChatStyle().setChatClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, urlMessage.getUnformattedText()));            	
             	player.addChatMessage(updateMessage);
             	player.addChatMessage(pageMessage.appendSibling(urlMessage));
             }

@@ -25,7 +25,7 @@ public class KeyCombinationsClassTransformer implements IClassTransformer {
 	public static final Logger CORE_LOGGER = LogManager.getLogger("Key Combinations Core");
 	
 	private static final String HOOKS_CLASS = "ru/austeretony/keycombs/coremod/KeyCombinationsHooks";
-	
+	 
     @Override
     public byte[] transform(String name, String transformedName, byte[] basicClass) {    	
     	
@@ -34,18 +34,18 @@ public class KeyCombinationsClassTransformer implements IClassTransformer {
 			case "net.minecraft.client.settings.GameSettings":							
 				return patchGameSettings(basicClass);
 			case "net.minecraft.client.settings.KeyBinding":		
-				return patchKeyBinding(basicClass);
-			case "net.minecraft.client.gui.GuiKeyBindingList$KeyEntry":		
+				return patchKeyBinding(basicClass);				
+			case "net.minecraft.client.gui.GuiKeyBindingList$KeyEntry":								
 				return patchKeyEntry(basicClass);					
 			case "net.minecraft.client.gui.GuiControls":		
-				return patchGuiControls(basicClass);						
+				return patchGuiControls(basicClass);							
 			case "net.minecraft.client.Minecraft":							
-	    		return patchMinecraft(basicClass);		
+	    		return patchMinecraft(basicClass);			
 			case "net.minecraft.client.gui.GuiScreen":							
-	    		return patchGuiScreen(basicClass, true);			
+	    		return patchGui(basicClass, true);			
 			case "net.minecraft.client.gui.inventory.GuiContainer":							
-	    		return patchGuiScreen(basicClass, false);
-    	}	
+	    		return patchGui(basicClass, false);	
+    	}
     	
 		return basicClass;
     }
@@ -136,10 +136,10 @@ public class KeyCombinationsClassTransformer implements IClassTransformer {
         
 	 	String 
 	 	onTickMethodName = KeyCombinationsCorePlugin.isObfuscated() ? "a" : "onTick",
-	 	isKeyPressedMethodName = KeyCombinationsCorePlugin.isObfuscated() ? "d" : "getIsKeyPressed",
 	 	setKeyBindStateMethodName = KeyCombinationsCorePlugin.isObfuscated() ? "a" : "setKeyBindState",
+	    isKeyDownMethodName = KeyCombinationsCorePlugin.isObfuscated() ? "d" : "isKeyDown",
 	 	stringClassName = "java/lang/String",
-	 	keyBindingClassName = KeyCombinationsCorePlugin.isObfuscated() ? "bal" : "net/minecraft/client/settings/KeyBinding";
+	 	keyBindingClassName = KeyCombinationsCorePlugin.isObfuscated() ? "avb" : "net/minecraft/client/settings/KeyBinding";
 
         boolean isSuccessful = false;
         
@@ -155,13 +155,13 @@ public class KeyCombinationsClassTransformer implements IClassTransformer {
                 	
                     currentInsn = insnIterator.next(); 
                     
-                    if (currentInsn.getOpcode() == Opcodes.IFNULL) {    
+                    if (currentInsn.getOpcode() == Opcodes.ILOAD) {    
                     	
                     	InsnList nodesList = new InsnList();
 
                     	nodesList.add(new VarInsnNode(Opcodes.ILOAD, 0));
-                    	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "lookupActive", "(I)L" + keyBindingClassName + ";", false));
-                    	nodesList.add(new VarInsnNode(Opcodes.ASTORE, 1));
+                    	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "onTick", "(I)V", false));
+                    	nodesList.add(new InsnNode(Opcodes.RETURN));
                     	
                     	methodNode.instructions.insertBefore(currentInsn.getPrevious(), nodesList); 
                     	
@@ -184,7 +184,7 @@ public class KeyCombinationsClassTransformer implements IClassTransformer {
 
                     	nodesList.add(new VarInsnNode(Opcodes.ILOAD, 0));
                     	nodesList.add(new VarInsnNode(Opcodes.ILOAD, 1));
-                    	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "setKeybindingsState", "(IZ)V", false));
+                    	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "setKeyBindState", "(IZ)V", false));
                     	nodesList.add(new InsnNode(Opcodes.RETURN));
                     	
                     	methodNode.instructions.insertBefore(currentInsn, nodesList); 
@@ -192,10 +192,10 @@ public class KeyCombinationsClassTransformer implements IClassTransformer {
                     	break;
                     }
                 }
-			}
+			}		
 			
 			if (methodNode.name.equals("<init>") && methodNode.desc.equals("(L" + stringClassName + ";IL" + stringClassName + ";)V")) {
-												                
+                
                 Iterator<AbstractInsnNode> insnIterator = methodNode.instructions.iterator();
                
                 while (insnIterator.hasNext()) {
@@ -216,24 +216,24 @@ public class KeyCombinationsClassTransformer implements IClassTransformer {
                 }                
 			}
 			
-			if (methodNode.name.equals(isKeyPressedMethodName) && methodNode.desc.equals("()Z")) {
-				                
+			if (methodNode.name.equals(isKeyDownMethodName) && methodNode.desc.equals("()Z")) {
+                
                 Iterator<AbstractInsnNode> insnIterator = methodNode.instructions.iterator();
                
                 while (insnIterator.hasNext()) {
                 	
                     currentInsn = insnIterator.next(); 
                     
-                    if (currentInsn.getOpcode() == Opcodes.ALOAD) {    
+                    if (currentInsn.getOpcode() == Opcodes.ALOAD) {                   	
                     	
                     	InsnList nodesList = new InsnList();
-
+                    	
                     	nodesList.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                    	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "isKeyPressed", "(L" + keyBindingClassName + ";)Z", false));
-                    	nodesList.add(new InsnNode(Opcodes.IRETURN));
+                    	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "isKeyDown", "(L" + keyBindingClassName + ";)Z", false));
+                    	nodesList.add(new InsnNode(Opcodes.IRETURN));         
                     	
                     	methodNode.instructions.insertBefore(currentInsn, nodesList); 
-                    	
+                    
                     	break;
                     }
                 }
@@ -262,13 +262,12 @@ public class KeyCombinationsClassTransformer implements IClassTransformer {
 	 	String
 	 	changeButtonFieldName = KeyCombinationsCorePlugin.isObfuscated() ? "d" : "btnChangeKeyBinding",
 	 	resetButtonFieldName = KeyCombinationsCorePlugin.isObfuscated() ? "e" : "btnReset",
-	 	keyBindingFieldName = KeyCombinationsCorePlugin.isObfuscated() ? "b" : "field_148282_b",
+	 	keyBindingFieldName = KeyCombinationsCorePlugin.isObfuscated() ? "b" : "keybinding",
 	 	drawEntryMethodName = KeyCombinationsCorePlugin.isObfuscated() ? "a" : "drawEntry",
 	    mousePressedMethodName = KeyCombinationsCorePlugin.isObfuscated() ? "a" : "mousePressed",
-	 	keyEntryClassName = KeyCombinationsCorePlugin.isObfuscated() ? "bev" : "net/minecraft/client/gui/GuiKeyBindingList$KeyEntry",
-	    tesselatorClassName = KeyCombinationsCorePlugin.isObfuscated() ? "bmh" : "net/minecraft/client/renderer/Tessellator",
-	    guiButtonClassName = KeyCombinationsCorePlugin.isObfuscated() ? "bcb" : "net/minecraft/client/gui/GuiButton",
-	 	keyBindingClassName = KeyCombinationsCorePlugin.isObfuscated() ? "bal" : "net/minecraft/client/settings/KeyBinding";
+	 	keyEntryClassName = KeyCombinationsCorePlugin.isObfuscated() ? "ayi$b" : "net/minecraft/client/gui/GuiKeyBindingList$KeyEntry",
+	    guiButtonClassName = KeyCombinationsCorePlugin.isObfuscated() ? "avs" : "net/minecraft/client/gui/GuiButton",
+	 	keyBindingClassName = KeyCombinationsCorePlugin.isObfuscated() ? "avb" : "net/minecraft/client/settings/KeyBinding";
 	 	
         boolean isSuccessful = false;
         
@@ -280,7 +279,7 @@ public class KeyCombinationsClassTransformer implements IClassTransformer {
                         
 		for (MethodNode methodNode : classNode.methods) {
 			
-			if (methodNode.name.equals(drawEntryMethodName) && methodNode.desc.equals("(IIIIIL" + tesselatorClassName + ";IIZ)V")) {
+			if (methodNode.name.equals(drawEntryMethodName) && methodNode.desc.equals("(IIIIIIIZ)V")) {
 																                
                 Iterator<AbstractInsnNode> insnIterator = methodNode.instructions.iterator();
                
@@ -302,11 +301,11 @@ public class KeyCombinationsClassTransformer implements IClassTransformer {
 	                    	nodesList.add(new FieldInsnNode(Opcodes.GETFIELD, keyEntryClassName, resetButtonFieldName, "L" + guiButtonClassName + ";"));
 	                    	nodesList.add(new VarInsnNode(Opcodes.ALOAD, 0));
 	                    	nodesList.add(new FieldInsnNode(Opcodes.GETFIELD, keyEntryClassName, keyBindingFieldName, "L" + keyBindingClassName + ";"));
-                        	nodesList.add(new VarInsnNode(Opcodes.ILOAD, 10));
+                        	nodesList.add(new VarInsnNode(Opcodes.ILOAD, 9));
                         	nodesList.add(new VarInsnNode(Opcodes.ILOAD, 2));
                         	nodesList.add(new VarInsnNode(Opcodes.ILOAD, 3));
+                        	nodesList.add(new VarInsnNode(Opcodes.ILOAD, 6));
                         	nodesList.add(new VarInsnNode(Opcodes.ILOAD, 7));
-                        	nodesList.add(new VarInsnNode(Opcodes.ILOAD, 8));
                         	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "drawCuiControlsKeyEntry", "(L" + guiButtonClassName + ";L" + guiButtonClassName + ";L" + keyBindingClassName + ";ZIIII)V", false));
 
 	                    	nodesList.add(new InsnNode(Opcodes.RETURN));
@@ -367,16 +366,16 @@ public class KeyCombinationsClassTransformer implements IClassTransformer {
         
 	 	String 
 	 	buttonIdFieldName = KeyCombinationsCorePlugin.isObfuscated() ? "f" : "buttonId",
-	 	resetButtonFieldName = KeyCombinationsCorePlugin.isObfuscated() ? "t" : "field_146493_s",
+	 	resetButtonFieldName = KeyCombinationsCorePlugin.isObfuscated() ? "t" : "buttonReset",
 	 	actionPerformedMethodName = KeyCombinationsCorePlugin.isObfuscated() ? "a" : "actionPerformed",
 	 	mouseClickedMethodName = KeyCombinationsCorePlugin.isObfuscated() ? "a" : "mouseClicked",
 	 	keyTypedMethodName = KeyCombinationsCorePlugin.isObfuscated() ? "a" : "keyTyped",
 	 	drawScreenMethodName = KeyCombinationsCorePlugin.isObfuscated() ? "a" : "drawScreen",
-	 	guiScreenClassName = KeyCombinationsCorePlugin.isObfuscated() ? "bdw" : "net/minecraft/client/gui/GuiScreen",
-	 	guiButtonClassName = KeyCombinationsCorePlugin.isObfuscated() ? "bcb" : "net/minecraft/client/gui/GuiButton",
+	 	guiScreenClassName = KeyCombinationsCorePlugin.isObfuscated() ? "axu" : "net/minecraft/client/gui/GuiScreen",
+	 	guiButtonClassName = KeyCombinationsCorePlugin.isObfuscated() ? "avs" : "net/minecraft/client/gui/GuiButton",
 	 	keyModifierClassName = "ru/austeretony/keycombs/main/EnumKeyModifier",
-	 	guiControlsClassName = KeyCombinationsCorePlugin.isObfuscated() ? "bew" : "net/minecraft/client/gui/GuiControls",
-	 	keyBindingClassName = KeyCombinationsCorePlugin.isObfuscated() ? "bal" : "net/minecraft/client/settings/KeyBinding";
+	 	guiControlsClassName = KeyCombinationsCorePlugin.isObfuscated() ? "ayj" : "net/minecraft/client/gui/GuiControls",
+	 	keyBindingClassName = KeyCombinationsCorePlugin.isObfuscated() ? "avb" : "net/minecraft/client/settings/KeyBinding";
 	 	
         boolean isSuccessful = false;
         
@@ -486,6 +485,21 @@ public class KeyCombinationsClassTransformer implements IClassTransformer {
                         	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "setKeyModifierAndCode", "(L" + keyBindingClassName + ";L" + keyModifierClassName + ";I)V", false));
                         	
                         	methodNode.instructions.insertBefore(currentInsn, nodesList); 
+                    	}   
+                    	
+                    	if (aloadCount == 6) {
+                    		
+                        	InsnList nodesList = new InsnList();
+                        	
+                        	nodesList.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                        	nodesList.add(new FieldInsnNode(Opcodes.GETFIELD, guiControlsClassName, buttonIdFieldName, "L" + keyBindingClassName + ";"));
+                        	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, keyModifierClassName, "getActiveModifier", "()L" + keyModifierClassName + ";", false));
+                        	nodesList.add(new VarInsnNode(Opcodes.ILOAD, 1));                       	
+                        	nodesList.add(new IntInsnNode(Opcodes.BIPUSH, 256));
+                        	nodesList.add(new InsnNode(Opcodes.IADD));                       	
+                        	nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "setKeyModifierAndCode", "(L" + keyBindingClassName + ";L" + keyModifierClassName + ";I)V", false));
+                        	
+                        	methodNode.instructions.insertBefore(currentInsn, nodesList); 
                     		
                         	break;
                     	}   
@@ -549,7 +563,7 @@ public class KeyCombinationsClassTransformer implements IClassTransformer {
 	    classNode.accept(writer);
 	    
 	    if (isSuccessful)
-	    	CORE_LOGGER.info("<GuiControls.class> patched!");    
+	    	CORE_LOGGER.info("<GuiControls.class> patched!");   
         
         return writer.toByteArray();				
 	}
@@ -560,7 +574,7 @@ public class KeyCombinationsClassTransformer implements IClassTransformer {
         ClassReader classReader = new ClassReader(basicClass);
         classReader.accept(classNode, 0);
         
-	 	String runTickMethodName = KeyCombinationsCorePlugin.isObfuscated() ? "p" : "runTick";
+	 	String runTickMethodName = KeyCombinationsCorePlugin.isObfuscated() ? "s" : "runTick";
 	 	
         int 
         bipushCount = 0,
@@ -584,26 +598,26 @@ public class KeyCombinationsClassTransformer implements IClassTransformer {
                     	
                     	bipushCount++;
                     	
-                    	if (bipushCount == 4 || bipushCount == 6 || bipushCount == 9 || bipushCount == 11 || bipushCount == 13 || bipushCount == 17 || bipushCount == 19 || bipushCount == 21 || bipushCount == 23 || bipushCount == 25) {
+                    	if (bipushCount == 4 || bipushCount == 6 || bipushCount == 9 || bipushCount == 11 || bipushCount == 13 || bipushCount == 15 || bipushCount == 17 || bipushCount == 19 || bipushCount == 21 || bipushCount == 23 || bipushCount == 25 || bipushCount == 27 || bipushCount == 29 || bipushCount == 31 || bipushCount == 33 || bipushCount == 35) {
                     		
                             methodNode.instructions.insertBefore(currentInsn, new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "getDebugScreenKeyCode", "()I", false)); 
                     		
                     		insnIterator.remove();
                     		
-                    		if (bipushCount == 25) {
+                    		if (bipushCount == 35) {
                     			
                     			break; 
                     		}
                     	}
                     	
-                    	if (bipushCount == 7) {
+                    	if (bipushCount == 14) {
                     		
                             methodNode.instructions.insertBefore(currentInsn, new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "getDisableShaderKeyCode", "()I", false)); 
                     		
                     		insnIterator.remove();
                     	}
                     	                   	
-                    	if (bipushCount == 24) {
+                    	if (bipushCount == 34) {
                         	                                                   	
                             methodNode.instructions.insertBefore(currentInsn, new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "isHideHUDKeyPressed", "(I)Z", false)); 
                             
@@ -643,7 +657,7 @@ public class KeyCombinationsClassTransformer implements IClassTransformer {
         return writer.toByteArray();				
 	}
 	
-	private byte[] patchGuiScreen(byte[] basicClass, boolean flag) {
+	private byte[] patchGui(byte[] basicClass, boolean flag) {
         
 	    ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(basicClass);
@@ -687,9 +701,9 @@ public class KeyCombinationsClassTransformer implements IClassTransformer {
 	    if (isSuccessful) {
 	    	
 	    	if (flag)
-	    		CORE_LOGGER.info("<GuiScreen.class> patched!");
+	    		CORE_LOGGER.info("<GuiScreen.class> patched!");   
 	    	else
-	    		CORE_LOGGER.info("<GuiContainer.class> patched!");
+	    		CORE_LOGGER.info("<GuiContainer.class> patched!");   
 	    }
         
         return writer.toByteArray();				
