@@ -1,0 +1,4 @@
+***080718***Incompatibility with Controlling mod.
+-Reason: replaces controls menu and key combinations can’t be used.
+-KC versions: all
+-MC versions: 1.7.10.

@@ -1,33 +1,23 @@
 {
 "1.6.4": {
-
-	"available": "1.1.0",
-		
-	"changelog": [
-			
-		"Fixed minor errors and code clean up.",
-		"Fixed server crash if installed on server."
-	]
+  "available": "1.1.2",	
+  "changelog": [		
+	"Fixed F3 keys combinations.",
+	"Update note now will be shown once per session on first world join."
+  ]
 },
-
 "1.7.10": {
-
-	"available": "1.1.1",
-		
-	"changelog": [
-			
-		"Minor fixes."
-	]
+  "available": "1.1.2",	
+  "changelog": [		
+	"Fixed F3 keys combinations.",
+	"Update note now will be shown once per session on first world join."
+  ]
 },
-
 "1.8.9": {
-
-	"available": "1.1.0",
-		
-	"changelog": [
-			
-		"Fixed minor errors and code clean up.",
-		"Fixed server crash if installed on server."
-	]
+  "available": "1.1.2",	
+  "changelog": [		
+	"Fixed F3 keys combinations.",
+	"Update note now will be shown once per session on first world join."
+  ]
 }
 }
