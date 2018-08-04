@@ -1,4 +1,4 @@
-package ru.austeretony.keycombs.coremod;
+package ru.austeretony.keycombs.core;
 
 import java.io.PrintStream;
 import java.util.Iterator;
@@ -23,7 +23,7 @@ public class KeyCombinationsClassTransformer implements IClassTransformer {
 
 	public static final PrintStream CORE_LOGGER = System.out;
 	
-	private static final String HOOKS_CLASS = "ru/austeretony/keycombs/coremod/KeyCombinationsHooks";
+	private static final String HOOKS_CLASS = "ru/austeretony/keycombs/core/KeyCombinationsHooks";
 	
     @Override
     public byte[] transform(String name, String transformedName, byte[] basicClass) {    	

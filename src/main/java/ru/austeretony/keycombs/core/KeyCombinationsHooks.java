@@ -1,4 +1,4 @@
-package ru.austeretony.keycombs.coremod;
+package ru.austeretony.keycombs.core;
 
 import java.io.PrintWriter;
 
@@ -41,7 +41,7 @@ public class KeyCombinationsHooks {
 	
 	public static int getDebugScreenKeyCode() {
 				
-		return KeyCombinationsKeyHandler.KEY_DEBUG_SCREEN.isPressed() ? KeyCombinationsKeyHandler.KEY_DEBUG_SCREEN.keyCode : 0;
+		return KeyBindingProperty.get(KeyCombinationsKeyHandler.KEY_DEBUG_SCREEN).isActiveAndMatches(KeyCombinationsKeyHandler.KEY_DEBUG_SCREEN.keyCode) ? KeyCombinationsKeyHandler.KEY_DEBUG_SCREEN.keyCode : 0;
 	}
 	
 	public static boolean isTogglePerspectiveKeyPressed(int key) {
