@@ -132,7 +132,7 @@ public class KeyBindingProperty {
         	
             for (KeyBindingProperty property : propertties) {
             	
-                if (property.isActiveAndMatch(keyCode))               	
+                if (property.isActiveAndMatches(keyCode))               	
                     return property.getKeyBinding();
             }
         }
@@ -153,7 +153,7 @@ public class KeyBindingProperty {
         return matchingBindings;
     }
     
-    public boolean isActiveAndMatch(int keyCode) {
+    public boolean isActiveAndMatches(int keyCode) {
     	    	
     	EnumKeyConflictContext conflictContext = this.getKeyConflictContext();
     	

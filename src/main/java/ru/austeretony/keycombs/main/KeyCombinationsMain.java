@@ -19,7 +19,7 @@ public class KeyCombinationsMain {
     public static final String 
 	MODID = "keycombs",
     NAME = "Key Combinations",
-    VERSION = "1.1.0",
+    VERSION = "1.1.2",
     GAME_VERSION = "1.8.9",
     VERSIONS_URL = "https://raw.githubusercontent.com/AustereTony-MCMods/Key-Combinations/info/versions.json",
     PROJECT_URL = "https://minecraft.curseforge.com/projects/key-combinations";
@@ -40,6 +40,10 @@ public class KeyCombinationsMain {
     	
     	KeyBindingProperty.setKeysConflictContext();
         	
-        MinecraftForge.EVENT_BUS.register(new UpdateChecker());   	
-    }
+		UpdateChecker updateChecker = new UpdateChecker();
+		
+		MinecraftForge.EVENT_BUS.register(updateChecker);    		
+		new Thread(updateChecker, "Key Combinations Update Check").start();
+		
+		LOGGER.info("Update check started...");    }
 }

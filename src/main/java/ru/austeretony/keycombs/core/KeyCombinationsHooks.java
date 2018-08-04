@@ -1,4 +1,4 @@
-package ru.austeretony.keycombs.coremod;
+package ru.austeretony.keycombs.core;
 
 import java.io.PrintWriter;
 
@@ -49,17 +49,17 @@ public class KeyCombinationsHooks {
 
 	public static boolean isQuitKeyPressed(int key) {
 		
-		return KeyBindingProperty.get(KeyCombinationsMain.keyBindingQuit).isActiveAndMatch(key);
+		return KeyBindingProperty.get(KeyCombinationsMain.keyBindingQuit).isActiveAndMatches(key);
 	}
 
 	public static boolean isHideHUDKeyPressed(int key) {
 		
-		return KeyBindingProperty.get(KeyCombinationsMain.keyBindingHideHUD).isActiveAndMatch(key);
+		return KeyBindingProperty.get(KeyCombinationsMain.keyBindingHideHUD).isActiveAndMatches(key);
 	}
 	
 	public static int getDebugScreenKeyCode() {
 				
-		return KeyCombinationsMain.keyBindingDebugScreen.isPressed() ? KeyCombinationsMain.keyBindingDebugScreen.getKeyCode() : 0;
+		return KeyBindingProperty.get(KeyCombinationsMain.keyBindingDebugScreen).isActiveAndMatches(KeyCombinationsMain.keyBindingDebugScreen.getKeyCode()) ? KeyCombinationsMain.keyBindingDebugScreen.getKeyCode() : 0;
 	}
 	
 	public static int getDisableShaderKeyCode() {

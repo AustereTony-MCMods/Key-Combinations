@@ -1,11 +1,11 @@
-package ru.austeretony.keycombs.coremod;
+package ru.austeretony.keycombs.core;
 
 import java.util.Map;
 
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin.TransformerExclusions;
 
-@TransformerExclusions({"ru.austeretony.keycombs.coremod"})
+@TransformerExclusions({"ru.austeretony.keycombs.core"})
 public class KeyCombinationsCorePlugin implements IFMLLoadingPlugin {
 	
     private static boolean isObfuscated;

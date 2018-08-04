@@ -21,7 +21,7 @@ plugins {
 }
 */
 
-version = "1.8.9-1.1.0"
+version = "1.8.9-1.1.2"
 group= "ru.austeretony.keycombs" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "keycombinations"
 
@@ -89,7 +89,7 @@ processResources
 
 jar {
    manifest {
-       attributes 'FMLCorePlugin': 'ru.austeretony.keycombs.coremod.KeyCombinationsCorePlugin'
+       attributes 'FMLCorePlugin': 'ru.austeretony.keycombs.core.KeyCombinationsCorePlugin'
        attributes 'FMLCorePluginContainsFMLMod': 'true'
 	   attributes 'FMLAT': 'keycombs_at.cfg'
    }

@@ -1,4 +1,4 @@
-package ru.austeretony.keycombs.coremod;
+package ru.austeretony.keycombs.core;
 
 import java.util.Iterator;
 
@@ -24,7 +24,7 @@ public class KeyCombinationsClassTransformer implements IClassTransformer {
 
 	public static final Logger CORE_LOGGER = LogManager.getLogger("Key Combinations Core");
 	
-	private static final String HOOKS_CLASS = "ru/austeretony/keycombs/coremod/KeyCombinationsHooks";
+	private static final String HOOKS_CLASS = "ru/austeretony/keycombs/core/KeyCombinationsHooks";
 	 
     @Override
     public byte[] transform(String name, String transformedName, byte[] basicClass) {    	
@@ -610,7 +610,7 @@ public class KeyCombinationsClassTransformer implements IClassTransformer {
                     		}
                     	}
                     	
-                    	if (bipushCount == 14) {
+                    	if (bipushCount == 7) {
                     		
                             methodNode.instructions.insertBefore(currentInsn, new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "getDisableShaderKeyCode", "()I", false)); 
                     		
