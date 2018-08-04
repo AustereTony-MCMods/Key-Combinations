@@ -12,98 +12,118 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.I18n;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 
-public class UpdateChecker {
+public class UpdateChecker implements Runnable {
 
+	private static boolean notified;
+	
+	private static String availableVersion = KeyCombinationsMain.VERSION;
+	
+	@SideOnly(Side.CLIENT)
 	@SubscribeEvent
 	public void onPlayerJoinedWorld(EntityJoinWorldEvent event) {
 		
-		if (event.world.isRemote && event.entity instanceof EntityPlayer)					
-			this.checkForUpdates();
+		if (event.entity instanceof EntityPlayer) {
+			
+			if (!notified) {
+				
+				notified = true;
+				
+		        if (this.compareVersions(KeyCombinationsMain.VERSION, availableVersion)) {	
+	            	
+		        	IChatComponent 
+		        	updateMessage1 = new ChatComponentText("[Key Combinations] "),
+		            updateMessage2 = new ChatComponentTranslation("keycombs.update.newVersion"),
+		            updateMessage3 = new ChatComponentText(" [" + KeyCombinationsMain.VERSION + "/" + availableVersion + "]"),
+		        	pageMessage1 = new ChatComponentTranslation("keycombs.update.projectPage"),
+		            pageMessage2 = new ChatComponentText(": "),
+		        	urlMessage = new ChatComponentText("minecraft.curseforge.com");		        
+		        	updateMessage1.getChatStyle().setColor(EnumChatFormatting.AQUA);
+		        	pageMessage1.getChatStyle().setColor(EnumChatFormatting.AQUA);
+		        	urlMessage.getChatStyle().setColor(EnumChatFormatting.WHITE);		        	
+		        	urlMessage.getChatStyle().setChatClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, KeyCombinationsMain.PROJECT_URL));		        	
+		        	((EntityPlayer) event.entity).addChatMessage(updateMessage1.appendSibling(updateMessage2).appendSibling(updateMessage3));
+		        	((EntityPlayer) event.entity).addChatMessage(pageMessage1.appendSibling(pageMessage2).appendSibling(urlMessage));
+		        }
+			}
+			
+			else {
+				
+				MinecraftForge.EVENT_BUS.unregister(this);
+			}
+		}
 	}
-	
-	private void checkForUpdates() {
-							
+
+	@Override
+	public void run() {
+
+		URL versionsURL;
+		
 		try {
 			
-			URL versionsURL = new URL(KeyCombinationsMain.VERSIONS_URL);
-			
-			InputStream inputStream;
-			
-			try {
-				
-				inputStream = versionsURL.openStream();
-			}
-			
-			catch (UnknownHostException exception) {
-														
-				KeyCombinationsMain.LOGGER.error("Update check failed, no internet connection.");
-				
-				return;
-			}
-			
-            JsonObject remoteData = (JsonObject) new JsonParser().parse(new InputStreamReader(inputStream, "UTF-8"));  			
-			
-            inputStream.close();
-            
-            JsonObject data;  
-            
-            try {
-            	
-            	data = remoteData.get(KeyCombinationsMain.GAME_VERSION).getAsJsonObject();      
-            }
-            
-            catch (NullPointerException exception) {
-            	
-            	KeyCombinationsMain.LOGGER.error("Update check failed, remote data is undefined for " + KeyCombinationsMain.GAME_VERSION + " version.");
-            	
-            	return;
-            }
-                           
-            String availableVersion = data.get("available").getAsString();
-            
-            if (this.compareVersions(KeyCombinationsMain.VERSION, availableVersion)) {	
-            	            	
-            	EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-            	
-            	IChatComponent 
-            	updateMessage = new ChatComponentText("[Key Combinations] " + I18n.format("keycombs.update.newVersion") + " [" + KeyCombinationsMain.VERSION + "/" + availableVersion + "]"),
-            	pageMessage = new ChatComponentText(I18n.format("keycombs.update.projectPage") + ": "),
-            	urlMessage = new ChatComponentText(KeyCombinationsMain.PROJECT_URL);
-            
-            	updateMessage.getChatStyle().setColor(EnumChatFormatting.AQUA);
-            	pageMessage.getChatStyle().setColor(EnumChatFormatting.AQUA);
-            	urlMessage.getChatStyle().setColor(EnumChatFormatting.WHITE);
-            	
-            	urlMessage.getChatStyle().setChatClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, urlMessage.getUnformattedText()));
-            	
-            	player.addChatMessage(updateMessage);
-            	player.addChatMessage(pageMessage.appendSibling(urlMessage));
-            }
+			versionsURL = new URL(KeyCombinationsMain.VERSIONS_URL);
 		}
 		
 		catch (MalformedURLException exception) {
 			
 			exception.printStackTrace();
+			
+			return;
+		}
+		
+		JsonObject remoteData;
+					
+		try (InputStream inputStream = versionsURL.openStream()) {
+			
+			remoteData = (JsonObject) new JsonParser().parse(new InputStreamReader(inputStream, "UTF-8")); 
+		}
+		
+		catch (UnknownHostException exception) {
+			
+			KeyCombinationsMain.LOGGER.error("Update check failed, no internet connection.");
+			
+			return;
 		}
 		
 		catch (FileNotFoundException exception) {
 			
-			KeyCombinationsMain.LOGGER.error("Update check failed, remote file is absent.");			
+			KeyCombinationsMain.LOGGER.error("Update check failed, remote file is absent.");
+			
+			return;
 		}
 		
 		catch (IOException exception) {
-			
+						
 			exception.printStackTrace();
+			
+			return;
 		}
+				        
+        JsonObject data;  
+        
+        try {
+        	
+        	data = remoteData.get(KeyCombinationsMain.GAME_VERSION).getAsJsonObject();      
+        }
+        
+        catch (NullPointerException exception) {
+        	
+        	KeyCombinationsMain.LOGGER.error("Update check failed, data is undefined for " + KeyCombinationsMain.GAME_VERSION + " version.");
+        	
+        	return;
+        }
+        
+        availableVersion = data.get("available").getAsString();
 	}
 	
 	private boolean compareVersions(String currentVersion, String availableVersion) {
