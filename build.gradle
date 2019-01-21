@@ -21,8 +21,8 @@ plugins {
 }
 */
 
-version = "1.8.9-1.1.2"
-group= "ru.austeretony.keycombs" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+version = "1.8.9-1.1.3"
+group= "austeretony.keycombs" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "keycombinations"
 
 sourceCompatibility = targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
@@ -89,7 +89,7 @@ processResources
 
 jar {
    manifest {
-       attributes 'FMLCorePlugin': 'ru.austeretony.keycombs.core.KeyCombinationsCorePlugin'
+       attributes 'FMLCorePlugin': 'austeretony.keycombs.common.core.KeyCombinationsCorePlugin'
        attributes 'FMLCorePluginContainsFMLMod': 'true'
 	   attributes 'FMLAT': 'keycombs_at.cfg'
    }
