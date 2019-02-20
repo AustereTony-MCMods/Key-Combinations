@@ -6,25 +6,33 @@ import net.minecraft.util.EnumChatFormatting;
 
 public enum EnumChatMessages {
 
-    UPDATE_MESSAGE {
+    UPDATE_MESSAGE;
 
-        @Override
-        public void showMessage(String... args) {
-            ChatMessageComponent 
-            modPrefix = new ChatMessageComponent().addText("[Key Combinations] "),
-            msg1, msg2, msg3;
-            modPrefix.setColor(EnumChatFormatting.AQUA);      
+    public static final ChatMessageComponent PREFIX;
+
+    static {
+        PREFIX = new ChatMessageComponent().addText("[" + KeyCombinationsMain.NAME + "] ");
+        PREFIX.setColor(EnumChatFormatting.AQUA);                   
+    }
+
+    private static ChatMessageComponent prefix() {
+        return new ChatMessageComponent(PREFIX);
+    }
+
+    public void showMessage(String... args) {
+        ChatMessageComponent msg1, msg2, msg3;
+        switch (this) {
+        case UPDATE_MESSAGE:
             msg1 = new ChatMessageComponent().addKey("keycombs.update.newVersion");
-            msg2 = new ChatMessageComponent().addText(" [" + KeyCombinationsMain.VERSION + "/" + args[0] + "]");        
-            ClientReference.showChatMessageClient(modPrefix.appendComponent(msg1).appendComponent(msg2));
+            msg2 = new ChatMessageComponent().addText(" [" + KeyCombinationsMain.VERSION + " / " + args[0] + "]") ;        
+            ClientReference.showChatMessageClient(prefix().appendComponent(msg1).appendComponent(msg2));
             msg1 = new ChatMessageComponent().addKey("keycombs.update.projectPage");
             msg2 = new ChatMessageComponent().addText(": ");
             msg3 = new ChatMessageComponent().addText(KeyCombinationsMain.PROJECT_URL);   
             msg1.setColor(EnumChatFormatting.AQUA);      
             msg3.setColor(EnumChatFormatting.WHITE);                             
-            ClientReference.showChatMessageClient(msg1.appendComponent(msg2).appendComponent(msg3));   
+            ClientReference.showChatMessageClient(msg1.appendComponent(msg2).appendComponent(msg3));
+            break;
         }
-    };
-
-    public abstract void showMessage(String... args);
+    }
 }

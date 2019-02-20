@@ -1,12 +1,10 @@
 package austeretony.keycombs.common.main;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.UnknownHostException;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -37,6 +35,7 @@ public class UpdateChecker implements Runnable {
 
     @Override
     public void run() {
+        KeyCombinationsMain.LOGGER.println("[Key Combinations][INFO] Update check started...");
         URL versionsURL;                
         try {                   
             versionsURL = new URL(KeyCombinationsMain.VERSIONS_URL);
@@ -47,16 +46,10 @@ public class UpdateChecker implements Runnable {
         JsonObject remoteData;                                  
         try (InputStream inputStream = versionsURL.openStream()) {                      
             remoteData = (JsonObject) new JsonParser().parse(new InputStreamReader(inputStream, "UTF-8")); 
-        } catch (UnknownHostException exception) {              
-            KeyCombinationsMain.LOGGER.println("[Key Combinations][ERROR] Update check failed, no internet connection.");               
+        } catch (IOException exception) {               
+            KeyCombinationsMain.LOGGER.println("[Key Combinations][ERROR] Update check failed!");               
             return;
-        } catch (FileNotFoundException exception) {                     
-            KeyCombinationsMain.LOGGER.println("[Key Combinations][ERROR] Update check failed, remote file is absent.");                        
-            return;
-        } catch (IOException exception) {                                               
-            exception.printStackTrace();                        
-            return;
-        }                                       
+        }                               
         JsonObject data;          
         try {           
             data = remoteData.get(KeyCombinationsMain.GAME_VERSION).getAsJsonObject();      
@@ -65,6 +58,7 @@ public class UpdateChecker implements Runnable {
             return;
         }        
         availableVersion = data.get("available").getAsString();
+        KeyCombinationsMain.LOGGER.println("[Key Combinations][INFO] Update check ended. Current/available: " + KeyCombinationsMain.VERSION + "/" + availableVersion);
     }
 
     private boolean compareVersions(String currentVersion, String availableVersion) {                                                           
