@@ -1,47 +1,34 @@
 package austeretony.keycombs.client.keybindings;
 
-import net.minecraft.client.Minecraft;
+import austeretony.keycombs.client.reference.ClientReference;
 
 public enum EnumKeyConflictContext {
 
-    UNIVERSAL {
+    UNIVERSAL,
+    GUI,
+    IN_GAME;
 
-        @Override
-        public boolean isActive() {
+    public boolean isActive() {
+        switch (this) {
+        case UNIVERSAL:
             return true;
-        }
-
-        @Override
-        public boolean conflicts(EnumKeyConflictContext other) {
-            return true;
-        }
-    },
-    GUI {
-
-        @Override
-        public boolean isActive() {
-            return Minecraft.getMinecraft().currentScreen != null;
-        }
-
-        @Override
-        public boolean conflicts(EnumKeyConflictContext other) {
-            return this == other;
-        }
-    },
-    IN_GAME {
-
-        @Override
-        public boolean isActive() {
+        case GUI:
+            return ClientReference.getMinecraft().currentScreen != null;
+        case IN_GAME:
             return !GUI.isActive();
         }
+        return false;
+    }
 
-        @Override
-        public boolean conflicts(EnumKeyConflictContext other) {
+    public boolean conflicts(EnumKeyConflictContext other) {
+        switch (this) {
+        case UNIVERSAL:
+            return true;
+        case GUI:
+            return this == other;
+        case IN_GAME:
             return this == other;
         }
-    };
-
-    public abstract boolean isActive();
-
-    public abstract boolean conflicts(EnumKeyConflictContext other);
+        return false;
+    }
 }
