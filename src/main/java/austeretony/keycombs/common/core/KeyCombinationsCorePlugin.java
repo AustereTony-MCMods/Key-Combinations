@@ -3,8 +3,12 @@ package austeretony.keycombs.common.core;
 import java.util.Map;
 
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
+import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin.MCVersion;
+import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin.Name;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin.TransformerExclusions;
 
+@Name("Key Combinations Core")
+@MCVersion("1.8.9")
 @TransformerExclusions({"austeretony.keycombs.common.core"})
 public class KeyCombinationsCorePlugin implements IFMLLoadingPlugin {
 

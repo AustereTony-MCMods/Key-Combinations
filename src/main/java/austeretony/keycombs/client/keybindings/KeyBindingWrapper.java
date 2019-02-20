@@ -9,16 +9,16 @@ import java.util.Map;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
+import austeretony.keycombs.client.reference.ClientReference;
 import austeretony.keycombs.common.main.KeyCombinationsMain;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.GameSettings;
 import net.minecraft.client.settings.KeyBinding;
 
-public class KeyBindingProperty {
+public class KeyBindingWrapper {
 
-    private static final Map<KeyBinding, KeyBindingProperty> PROPERTIES_BY_KEYBINDINGS = new HashMap<KeyBinding, KeyBindingProperty>();
+    private static final Map<KeyBinding, KeyBindingWrapper> PROPERTIES_BY_KEYBINDINGS = new HashMap<KeyBinding, KeyBindingWrapper>();
 
-    private static final Multimap<EnumKeyModifier, KeyBindingProperty> KEY_MODIFIERS = HashMultimap.<EnumKeyModifier, KeyBindingProperty>create();
+    private static final Multimap<EnumKeyModifier, KeyBindingWrapper> KEY_MODIFIERS = HashMultimap.<EnumKeyModifier, KeyBindingWrapper>create();
 
     private final KeyBinding keyBinding;
 
@@ -28,7 +28,7 @@ public class KeyBindingProperty {
 
     private EnumKeyConflictContext keyConflictContext;
 
-    private KeyBindingProperty(KeyBinding keyBinding) {
+    private KeyBindingWrapper(KeyBinding keyBinding) {
         this.keyBinding = keyBinding;
         this.defaultKeyModifier = this.keyModifier = EnumKeyModifier.NONE;       		
         this.keyConflictContext = EnumKeyConflictContext.UNIVERSAL;
@@ -37,10 +37,10 @@ public class KeyBindingProperty {
     }
 
     public static void create(KeyBinding keyBinding) {
-        new KeyBindingProperty(keyBinding);
+        new KeyBindingWrapper(keyBinding);
     }
 
-    public static KeyBindingProperty get(KeyBinding keyBinding) {
+    public static KeyBindingWrapper get(KeyBinding keyBinding) {
         return PROPERTIES_BY_KEYBINDINGS.get(keyBinding);
     }
 
@@ -103,9 +103,9 @@ public class KeyBindingProperty {
     }
 
     private static KeyBinding getBinding(int keyCode, EnumKeyModifier keyModifier) {
-        Collection<KeyBindingProperty> propertties = KEY_MODIFIERS.get(keyModifier);
+        Collection<KeyBindingWrapper> propertties = KEY_MODIFIERS.get(keyModifier);
         if (propertties != null) {
-            for (KeyBindingProperty property : propertties) {
+            for (KeyBindingWrapper property : propertties) {
                 if (property.isActiveAndMatches(keyCode))               	
                     return property.getKeyBinding();
             }
@@ -115,7 +115,7 @@ public class KeyBindingProperty {
 
     public static List<KeyBinding> lookupAll(int keyCode) {
         List<KeyBinding> matchingBindings = new ArrayList<KeyBinding>();
-        for (KeyBindingProperty property : KEY_MODIFIERS.values()) {
+        for (KeyBindingWrapper property : KEY_MODIFIERS.values()) {
             if (property.getKeyBinding().getKeyCode() == keyCode)           	
                 matchingBindings.add(property.getKeyBinding());
         }
@@ -127,7 +127,7 @@ public class KeyBindingProperty {
         return keyCode != 0 && keyCode == this.getKeyBinding().getKeyCode() && conflictContext.isActive() && this.getKeyModifier().isActive(conflictContext);
     }
 
-    public boolean conflicts(KeyBindingProperty other) {
+    public boolean conflicts(KeyBindingWrapper other) {
         if (this.getKeyConflictContext().conflicts(other.getKeyConflictContext()) || other.getKeyConflictContext().conflicts(this.getKeyConflictContext())) {
             EnumKeyModifier 
             keyModifier = this.getKeyModifier(),
@@ -140,7 +140,7 @@ public class KeyBindingProperty {
         return false;
     }
 
-    public boolean hasKeyCodeModifierConflict(KeyBindingProperty other) {
+    public boolean hasKeyCodeModifierConflict(KeyBindingWrapper other) {
         if (this.getKeyConflictContext().conflicts(other.getKeyConflictContext()) || other.getKeyConflictContext().conflicts(this.getKeyConflictContext())) {
             if (this.getKeyModifier().match(other.getKeyBinding().getKeyCode()) || other.getKeyModifier().match(this.getKeyBinding().getKeyCode()))         	
                 return true;
@@ -153,7 +153,7 @@ public class KeyBindingProperty {
     }
 
     public static void setKeysConflictContext() {
-        GameSettings gameSetings = Minecraft.getMinecraft().gameSettings;
+        GameSettings gameSetings = ClientReference.getGameSettings();
         EnumKeyConflictContext inGame = EnumKeyConflictContext.IN_GAME;
         PROPERTIES_BY_KEYBINDINGS.get(gameSetings.keyBindForward).setKeyConflictContext(inGame);
         PROPERTIES_BY_KEYBINDINGS.get(gameSetings.keyBindLeft).setKeyConflictContext(inGame);
