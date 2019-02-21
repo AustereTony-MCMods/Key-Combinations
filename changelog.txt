@@ -1,17 +1,23 @@
-1.0.0
-+Initial release.
+1.1.4
++Fixed MineMenu key behavior. If it combined with ctrl, shift or alt it will work properly.
++Code cleanup.
 
-1.1.0
-+Fixed minor errors and code clean up.
-+Fixed server crash if installed on server.
-
-1.1.1
-+Minor fixes.
+1.1.3
++Overall code improvements
 
 1.1.2
 +Fixed Debug Screen (F3) key combinations.
 +Update note now will be shown once per session on first world join.
 
-1.1.3
-+Overall code improvements
+1.1.1
++Minor fixes.
+
+1.1.0
++Fixed minor errors and code clean up.
++Fixed server crash if installed on server.
+
+1.0.0
++Initial release.
+
+
 
